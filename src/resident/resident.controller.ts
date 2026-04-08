@@ -112,7 +112,9 @@ export class ResidentController {
 
   @Get('profile')
   @ResidentAuth()
-  async getProfile(@AuthenticatedResident() resident: AuthUser) {
+  async getProfile(
+    @AuthenticatedResident() resident: AuthUser,
+  ): Promise<SuccessResponse> {
     const response = await this.residentService.getProfile(resident.id);
     return new SuccessResponse('Resident details fetcted', response);
   }
@@ -231,14 +233,14 @@ export class ResidentController {
     );
   }
 
- @Get('smart-bin-applications/:orderId/tracker')
+  @Get('smart-bin-applications/:orderId/tracker')
   @ResidentAuth()
   async trackApplication(@Param('orderId') orderId: string) {
     return this.residentService.trackApplication(orderId);
   }
 
   @Delete('smartbin/:applicationId')
-   @ResidentAuth()
+  @ResidentAuth()
   async deleteApplication(@Param('applicationId') applicationId: string) {
     await this.residentService.deleteBinApplication(applicationId);
     return new SuccessResponse('application deleted', null);

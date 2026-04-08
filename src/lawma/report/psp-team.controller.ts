@@ -2,54 +2,25 @@ import { Controller, Post, Get, Param, Query, Body } from '@nestjs/common';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ReportType } from '@models/report.model';
 import { Types } from 'mongoose';
-import { ReportService } from '@src/report/report.service';
 import { AdminReportService } from './report.service';
 import {
   CreateAdminReportDto,
   GetReportsDto,
 } from '@src/report/dtos/report.dto';
 import { SuccessResponse } from '@common/http';
-import {PspUserAuth, AuthenticatedPspUser,AuthenticatedPspTeamMember} from '@common/decorators/auth.decorator';
-import { AdminUser, PspTeamMember, PspUser } from '@common/types';
+import {PspTeamMemberAuth, AuthenticatedPspTeamMember} from '@common/decorators/auth.decorator';
+import {  PspTeamMember } from '@common/types';
 
-@ApiTags('PSP/Report')
+@ApiTags('PSP/TeamMember/Report')
 @Controller({
-  path: 'lawma/psp/reports',
+  path: 'lawma/psp/team-member/reports',
   version: '1',
 })
-@PspUserAuth()
-export class PSPReportController {
+@PspTeamMemberAuth()
+export class PSPTeamReportController {
   constructor(private readonly reportService: AdminReportService) {}
 
-  @Post('report')
-  async createReport(
-    @AuthenticatedPspUser() admin: PspUser,
-    @Body() dto: CreateAdminReportDto,
-  ) {
-    const data = await this.reportService.generatePSPReport(admin, dto);
-    return data;
-  }
-
-  @Get()
-  async getReports(
-    @AuthenticatedPspUser() admin: PspUser,
-    @Query() filters: GetReportsDto,
-  ) {
-    const reports = await this.reportService.getPspReports(admin, filters);
-    return new SuccessResponse('Reports retrieved successfully', reports);
-  }
-
-  @Get(':id')
-  async getReportById(
-    @AuthenticatedPspUser() admin: PspUser & AdminUser,
-    @Param('id') id: string,
-  ) {
-    const report = await this.reportService.getAdminReportById(id, admin);
-    return new SuccessResponse('Report retrieved successfully', report);
-  }
-
-
-  @Post('team-member-report')
+  @Post()
   async createTeamMemberReport(
     @AuthenticatedPspTeamMember() teamMember: PspTeamMember,
     @Body() dto: CreateAdminReportDto,
@@ -58,7 +29,7 @@ export class PSPReportController {
     return data;
 }
 
-@Get('team-member-reports')
+@Get()
 async getTeamMemberReports(
   @AuthenticatedPspTeamMember() teamMember: PspTeamMember,
   @Query() filters: GetReportsDto,
@@ -68,7 +39,7 @@ async getTeamMemberReports(
 
 }
 
-@Get('team-member-reports/:id')
+@Get(':id')
 async getTeamMemberReportById(
   @AuthenticatedPspTeamMember() teamMember: PspTeamMember,
   @Param('id') id: string,

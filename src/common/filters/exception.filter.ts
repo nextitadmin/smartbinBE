@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { ThrottlerException } from '@nestjs/throttler';
 import { Response } from 'express';
+import { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
 import { ErrorResponseObject } from '../http';
 import { RequestValidationException } from '../errors';
 
@@ -49,6 +50,18 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     res.status(500).json(new ErrorResponseObject('An unknown error occurred'));
   }
 
+  private handleTokenExpired(res: Response) {
+    res
+      .status(HttpStatus.UNAUTHORIZED)
+      .json(new ErrorResponseObject('Authentication token expired'));
+  }
+
+  private handleInvalidToken(res: Response) {
+    res
+      .status(HttpStatus.UNAUTHORIZED)
+      .json(new ErrorResponseObject('Invalid authentication token'));
+  }
+
   private handleRequestValidationError(
     exception: RequestValidationException,
     res: Response,
@@ -62,6 +75,14 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     if (exception instanceof ThrottlerException) {
       return this.handleThrottled(response);
+    }
+
+    if (exception instanceof TokenExpiredError) {
+      return this.handleTokenExpired(response);
+    }
+
+    if (exception instanceof JsonWebTokenError) {
+      return this.handleInvalidToken(response);
     }
 
     if (exception instanceof RequestValidationException) {

@@ -6,6 +6,7 @@ export enum AdministratorRole {
   Admin = 'admin',
   TeamMember = 'team_member',
   SmartBinPartner = 'smartbin_partner',
+  PSPAdmin = 'psp_admin',
 }
 
 export enum AdministratorStatus {
@@ -20,6 +21,8 @@ export interface AdministratorAttributes {
   role: AdministratorRole;
   password: string;
   status: AdministratorStatus;
+  createdAt?:Date | null;
+  updatedAt?:Date | null;
   deleted_at?: Date | null;
 }
 

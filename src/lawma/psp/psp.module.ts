@@ -21,6 +21,7 @@ import { AuthService } from '../auth/auth.service';
 import { RbacModule } from '@src/rbac/rbac.module';
 import { PspTeamManagementController } from './psp-users/team-management/teamManagement.controller';
 import { PspTeamManagement } from './psp-users/team-management/teamManagement.service';
+import { PSPTeamReportController } from '../report/psp-team.controller';
 
 @Module({
   controllers: [
@@ -28,6 +29,7 @@ import { PspTeamManagement } from './psp-users/team-management/teamManagement.se
     PspAuthController,
     PspWasteManagementController,
     PSPReportController,
+    PSPTeamReportController,
     PspTeamManagementController
   ],
   providers: [

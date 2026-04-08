@@ -249,7 +249,7 @@ export class ResidentService {
     };
   }
 
-  async getProfile(residentId: string) {
+  async getProfile(residentId: string): Promise<any> {
     const resident = await this.residentModel
       .findById(residentId)
       .select(
@@ -368,7 +368,7 @@ export class ResidentService {
     return { message: 'Logged out successfully' };
   }
 
-  async getResidentDetailsByToken(token: string) {
+  async getResidentDetailsByToken(token: string): Promise<any> {
     const tokenDetails = await this.jwtService.decode(token);
     if (!tokenDetails) {
       throw new UnauthorizedException('unable to unauthenticate');

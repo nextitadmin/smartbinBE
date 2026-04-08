@@ -46,7 +46,7 @@ export class PspTeamManagementController {
 
   @Get('members')
   async getPspMembers(@AuthenticatedPspUser() pspAdmin: PspUser) {
-    const response = await this.pspTeamService.getPspMembers(pspAdmin.id);
+    const response = await this.pspTeamService.getPspMembers(pspAdmin.pspId);
     return new SuccessResponse('psp members fetched', response);
   }
 
@@ -57,7 +57,7 @@ export class PspTeamManagementController {
     @Body() body: UpdatePspMembersStatusBodyDTO,
   ) {
     const response = await this.pspTeamService.updatePspMembersStatus({
-      pspId: pspAdmin.id,
+      pspId: pspAdmin.pspId,
       memberId: param.memberId,
       status: body.status,
     });

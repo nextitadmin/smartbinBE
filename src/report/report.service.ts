@@ -581,7 +581,7 @@ export class ReportService {
         id: report._id,
         reportName: report.reportName,
         type: report.type,
-        generatedBy: report.adminId,
+        generatedBy: teamMember.id,
         generatedAt: report.createdAt,
         period: {
           from: moment(dto.startDate).format('DD/MM'),
@@ -661,7 +661,7 @@ export class ReportService {
       data = await this.pspWasteDisposedReport(admin, dto);
     } else {
       throw new NotFoundException(
-        'Unsupported report type for PSP Team Member.',
+        'Unsupported report type for PSP Admin.',
       );
     }
 

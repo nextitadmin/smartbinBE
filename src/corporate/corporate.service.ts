@@ -260,7 +260,7 @@ export class CorporateService {
     };
   }
 
-  async getProfile(userId: string) {
+  async getProfile(userId: string): Promise<any> {
     const business = await this.corporateModel
       .findById(userId)
       .select('-password -loginCode -loginCodeExpires')
@@ -531,7 +531,7 @@ export class CorporateService {
     };
   }
 
-  async getCorporateDetailsByToken(token: string) {
+  async getCorporateDetailsByToken(token: string): Promise<any> {
     const tokenDetails = await this.jwtService.decode(token);
     if (!tokenDetails) {
       throw new UnauthorizedException('unable to unauthenticate');

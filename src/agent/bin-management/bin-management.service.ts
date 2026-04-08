@@ -6,9 +6,11 @@ import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 
 @Injectable()
 export class AgentSmartbinService {
-  constructor(private readonly smartbinService: SmartBinService) { }
+  constructor(private readonly smartbinService: SmartBinService) {}
 
-  async getAgentBinApplications(filter: AgentBinApplicationFilter) {
+  async getAgentBinApplications(
+    filter: AgentBinApplicationFilter,
+  ): Promise<any> {
     return this.smartbinService.getAgentBinApplication(filter);
   }
 
@@ -31,15 +33,12 @@ export class AgentSmartbinService {
   async getApplicationById(id: string) {
     return this.smartbinService.getBinApplicationById(id);
   }
-  
-   async trackApplicationById(id: string) {
+
+  async trackApplicationById(id: string) {
     return this.smartbinService.getOrderTimeline(id);
   }
-
-
 
   async deleteBinApplication(applicationId: string) {
     return this.smartbinService.deleteBinApplication(applicationId);
   }
-
 }

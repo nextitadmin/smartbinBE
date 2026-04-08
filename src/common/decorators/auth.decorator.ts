@@ -21,6 +21,7 @@ import { AuthGuard } from '@common/guards/actor.guard';
 import { AdminAuthGuard } from '@common/guards/admin.guard';
 import { PspUserAuthGuard } from '@common/guards/pspAdmin.guard';
 import { SmartbinPartnerAuthGuard } from '@common/guards/smartbin-partner.guard';
+import { PspTeamAuthGuard } from '@common/guards/pspTeamMember.guard';
 
 export function AgentAuth() {
   return applyDecorators(UseGuards(AgentAuthGuard));
@@ -48,6 +49,10 @@ export function AdminAuth() {
 
 export function PspUserAuth() {
   return applyDecorators(UseGuards(PspUserAuthGuard));
+}
+
+export function PspTeamMemberAuth() {
+  return applyDecorators(UseGuards(PspTeamAuthGuard));
 }
 
 export function SmartbinPartnerAuth() {

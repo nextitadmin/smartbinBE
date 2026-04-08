@@ -22,7 +22,11 @@ import { Cache } from 'cache-manager';
 import { CacheKeys } from '@src/shared/constants';
 import { UserRole } from '@models/types';
 import { JwtService } from '@nestjs/jwt';
-import { CreateAgentAccountDto, LoginAgentAccountDto, UpdateAgencyProfileDto } from './dto/agent.dto';
+import {
+  CreateAgentAccountDto,
+  LoginAgentAccountDto,
+  UpdateAgencyProfileDto,
+} from './dto/agent.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   MailNotificationEvents,
@@ -42,7 +46,7 @@ export class AgentService {
     @InjectModel(UserKyc.name) private readonly userKycModel: Model<UserKyc>,
     private readonly configService: ConfigService<ConfigAttributes>,
     private ee: EventEmitter2,
-  ) { }
+  ) {}
 
   async registerAgent(body: CreateAgentAccountDto) {
     const { payerId, agencyName, password, confirmPassword } = body;
@@ -106,7 +110,7 @@ export class AgentService {
     const agent = await this.agentModel.findOne({ email });
 
     if (!agent) {
-      throw new NotFoundException("Agent does not exist");
+      throw new NotFoundException('Agent does not exist');
     }
 
     const isPasswordMatch = comparePassword(password, agent.password);
@@ -130,7 +134,7 @@ export class AgentService {
       CacheKeys.AgentLoginCode(String(12345)),
       String(agent._id),
       loginCodeExpiry,
-    )
+    );
 
     this.ee.emit(
       MailNotificationEvents.Account.VerificationOTP,
@@ -193,7 +197,6 @@ export class AgentService {
     };
   }
 
-
   async updateProfile(userId: string, updateData: UpdateAgencyProfileDto) {
     const agent = await this.agentModel.findById(userId);
     if (!agent) {
@@ -228,8 +231,7 @@ export class AgentService {
     };
   }
 
-
-  async getProfile(agentId: string) {
+  async getProfile(agentId: string): Promise<any> {
     const agent = await this.agentModel
       .findById(agentId)
       .select(defaultAgentFields)
@@ -343,7 +345,7 @@ export class AgentService {
     return { message: 'Logged out successfully' };
   }
 
-  async getAgentDetailsByToken(token: string) {
+  async getAgentDetailsByToken(token: string): Promise<any> {
     const tokenDetails = await this.jwtService.decode(token);
     if (!tokenDetails) {
       throw new UnauthorizedException('unable to unauthenticate');
@@ -352,5 +354,5 @@ export class AgentService {
     return this.getProfile(tokenDetails.id);
   }
 
-  async verifyResetCode(code: string) { }
+  async verifyResetCode(code: string) {}
 }

@@ -54,6 +54,10 @@ export class CreatePspMembersDTO {
   @ApiProperty()
   @IsString()
   phone_number: string;
+
+  @ApiProperty()
+  @IsString()
+  role: string;
 }
 
 export class UpdatePspMembersStatusParamDTO {

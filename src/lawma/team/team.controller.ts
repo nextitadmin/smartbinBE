@@ -38,6 +38,12 @@ export class TeamController {
     );
   }
 
+  @Get('/roles')
+  async getTeamRoles(){
+    const roles = await this.teamService.getTeamRoles();
+    return new SuccessResponse('Team roles fetched successfully', roles);
+  }
+
   @Post()
   async createTeam(@Body() team: CreateLawmaTeamDto) {
     const newTeam = await this.teamService.createTeam(team);

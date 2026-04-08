@@ -57,10 +57,26 @@ export class TeamService {
       );
     }
 
-    await this.teamMemberModel.create({
+    const newTeamMember = await this.teamMemberModel.create({
       ...team,
       password: getHashedPassword('password'),
     });
+
+    const { password, createdAt, updatedAt, deleted_at, ...memberData } = newTeamMember.toObject();
+
+    return memberData;
+  }
+
+  async getTeamRoles() {
+    const displayNames: Record<string, string> = {
+      [AdministratorRole.Admin]: 'Admin',
+      [AdministratorRole.TeamMember]: 'Team Member',
+      [AdministratorRole.SmartBinPartner]: 'SmartBin Partner',
+      [AdministratorRole.PSPAdmin]: 'PSP Admin',
+    };
+    return Object.values(AdministratorRole)
+      .filter((role) => role !== AdministratorRole.SuperAdmin)
+      .map((role) => ({ name: role, displayName: displayNames[role] }));
   }
 
   async updateTeamDetails(id: string, team: UpdateTeamMemberDetailsDto) {

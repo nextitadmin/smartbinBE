@@ -90,7 +90,6 @@ export class CreateAdminReportDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
   lga?: string;
 
   @ApiProperty({ type: String, format: 'date-time' })

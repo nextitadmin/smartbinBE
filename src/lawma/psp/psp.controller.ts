@@ -20,6 +20,7 @@ import {
 import { AdminUser, PspUser } from '@common/types';
 import { AddRoleDto } from '@src/rbac/dto/rbac.dto';
 import { Request as UserRequest } from 'express';
+import { Public } from '@common/guards/public.guard';
 
 @ApiTags('PSPs')
 @Controller({
@@ -80,6 +81,7 @@ export class PspController {
   }
 
 
+  @Public()
   @Get('roles')
   async getRoles(@AuthenticatedPspUser() pspUser: PspUser) {
     const roles = await this.pspService.getRoles(pspUser.pspId);

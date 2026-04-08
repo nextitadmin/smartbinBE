@@ -66,12 +66,11 @@ export class PspTeamManagement {
         },
       }),
     );
-
-    // this.ee.emit()
   }
 
   async getPspMembers(pspId: string) {
-    return this.pspUser.find({ psp_id: pspId, deleted_at: null });
+
+    return this.pspUser.find({ psp_id: pspId, deleted_at: null }).select('-password -id');
   }
 
   async updatePsp(pspId: string, psp: PspDocument) {

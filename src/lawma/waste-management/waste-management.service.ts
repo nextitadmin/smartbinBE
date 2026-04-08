@@ -83,7 +83,7 @@ async getMonthlyRevenueForAdmin(admin: AdminUser, year?: number) {
     return new SuccessResponse('Assigned pickups retrieved successfully', assignedPickups);
   }
 
-  async getTeammemberAssignedPickup(pspTeamMember:PspUser, filters?: GetPickupDto) {
+  async getTeammemberAssignedPickup(pspTeamMember:PspTeamMember, filters?: GetPickupDto) {
     const assignedPickups = await this.pickupService.getPickupAssignedToTeammember(pspTeamMember,filters);
     return new SuccessResponse('Assigned pickups retrieved successfully', assignedPickups);
   }

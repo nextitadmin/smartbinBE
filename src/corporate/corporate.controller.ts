@@ -107,7 +107,9 @@ export class CorporateController {
 
   @Get('profile')
   @CorporateAuth()
-  async getProfile(@AuthenticatedCorporate() corporate: AuthUser) {
+  async getProfile(
+    @AuthenticatedCorporate() corporate: AuthUser,
+  ): Promise<SuccessResponse> {
     const response = await this.corporateService.getProfile(corporate.id);
     return new SuccessResponse('Corporate details fetcted', response);
   }

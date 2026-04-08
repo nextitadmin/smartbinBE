@@ -89,9 +89,9 @@ export class Report implements ReportAttributes {
   @Prop({
     type: SchemaTypes.ObjectId,
     ref: Lga.name,
-    required: true,
+    required: false,
   })
-  lgaId: Types.ObjectId;
+  lgaId?: Types.ObjectId;
 
   @Prop({ type: Object })
   filters: Record<string, any>;

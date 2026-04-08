@@ -7,27 +7,27 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { SmartbinPartnerUser } from '../types';
+import { PspTeamMember} from '../types';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from './public.guard';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
-import { LawmaPartnerAuthService } from '@src/lawma/lawma-partner/auth/auth.service';
-import { AdministratorRole } from '@models/administrator.model';
+import { PspAuthService } from '@src/lawma/psp/psp-users/auth/auth.service';
+import { PspUserAuthGuard } from './pspAdmin.guard';
 
 @Injectable()
-export class SmartbinPartnerAuthGuard implements CanActivate {
+export class PspTeamAuthGuard implements CanActivate {
   constructor(
-    @Inject(CACHE_MANAGER) private readonly cacheService: Cache,
+    @Inject(CACHE_MANAGER) private cacheService: Cache,
     private readonly reflector: Reflector,
-    private readonly lawmaPartnerAuthService: LawmaPartnerAuthService,
+    private readonly pspAuthService: PspAuthService,
   ) {}
 
-  private readonly logger = new Logger(SmartbinPartnerAuthGuard.name);
+  private logger = new Logger(PspTeamAuthGuard.name);
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req: Request & {
       user: Record<string, any>;
-      smartbinPartner?: SmartbinPartnerUser;
+      pspTeamMember?: PspTeamMember;
     } = ctx.switchToHttp().getRequest();
 
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -44,18 +44,20 @@ export class SmartbinPartnerAuthGuard implements CanActivate {
       throw new UnauthorizedException('Not Authorized');
     }
 
-    const administrator =
-      await this.lawmaPartnerAuthService.getAdminDetailsByToken(token);
-    if (!administrator) {
-      this.logger.warn('failed to auth: no user object in request');
+    const pspTeamMember = await this.pspAuthService.getAdminDetailsByToken(token);
+    if (!pspTeamMember) {
+      this.logger.warn('failed to auth: no team member object in request');
       throw new UnauthorizedException('not authenticated!');
     }
 
-    req.smartbinPartner = {
-      id: String(administrator._id),
-      email: administrator.email,
-      name: administrator.name,
-      role: AdministratorRole.SmartBinPartner,
+    const { _id,psp_id, email, name } = pspTeamMember;
+
+    req.pspTeamMember = {
+      id: String(_id),
+      pspId: String(psp_id),
+      email: email,
+      name: name,
+      token: token,
     };
 
     return true;

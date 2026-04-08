@@ -30,7 +30,7 @@ import { JwtService } from '@nestjs/jwt';
 export class LawmaPartnerAuthService {
   private readonly logger = new Logger(LawmaPartnerAuthService.name);
   constructor(
-    @Inject(CACHE_MANAGER) private cacheService: Cache,
+    @Inject(CACHE_MANAGER) private readonly cacheService: Cache,
     @InjectModel(Administrator.name)
     private readonly administratorModel: Model<Administrator>,
     private readonly configService: ConfigService<ConfigAttributes>,

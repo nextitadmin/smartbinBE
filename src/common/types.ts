@@ -55,6 +55,7 @@ export type PspUser = {
 
 export type PspTeamMember = {
   id: string;
+  pspId?:string;
   email: string;
   name: string;
   token?: string;

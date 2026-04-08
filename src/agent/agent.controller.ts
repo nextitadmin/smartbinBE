@@ -36,7 +36,7 @@ import { Public } from '@common/guards/public.guard';
   version: '1',
 })
 export class AgentController {
-  constructor(private readonly agentService: AgentService) { }
+  constructor(private readonly agentService: AgentService) {}
 
   @Public()
   @Post('register')
@@ -97,7 +97,9 @@ export class AgentController {
 
   @Get('profile')
   @AgentAuth()
-  async getProfile(@AuthenticatedAgent() agent: AuthUser) {
+  async getProfile(
+    @AuthenticatedAgent() agent: AuthUser,
+  ): Promise<SuccessResponse> {
     const response = await this.agentService.getProfile(agent.id);
     return new SuccessResponse('agent details fetcted', response);
   }
@@ -128,5 +130,4 @@ export class AgentController {
     const response = await this.agentService.updateProfile(agent.id, body);
     return new SuccessResponse('profile updated', response);
   }
-
 }

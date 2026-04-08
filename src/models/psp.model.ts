@@ -9,6 +9,12 @@ export enum PSPStatus {
   INACTIVE = 'inactive',
 }
 
+export enum PspRole {
+  Admin = 'admin',
+  TeamMember = 'team_member',
+  Viewer = 'viewer',
+}
+
 @Schema({ collection: 'psps', timestamps: true, versionKey: false })
 export class PSP {
   @Prop({
