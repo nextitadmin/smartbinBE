@@ -7,7 +7,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import {
@@ -49,7 +49,7 @@ export class AgentService {
   ) {}
 
   async registerAgent(body: CreateAgentAccountDto) {
-    const { payerId, agencyName, password, confirmPassword } = body;
+    const { payerId, agencyName, password, confirmPassword, lgaId } = body;
 
     if (password !== confirmPassword) {
       throw new BadRequestException(
@@ -66,7 +66,7 @@ export class AgentService {
     if (!payer) {
       throw new NotFoundException('Invalid payerId');
     }
-
+    const lga_Id = new Types.ObjectId(lgaId);
     const newAgent = await this.agentModel.create({
       payerId: payer._id,
       agencyName,
@@ -74,11 +74,13 @@ export class AgentService {
       lastName: payer.lastName,
       email: payer.email,
       password: password,
+      lgaId: lga_Id,
     });
 
     await this.userKycModel.create({
       userId: newAgent._id,
       userType: UserRole.Agent,
+      lgaId: lga_Id,
     });
 
     this.ee.emit(

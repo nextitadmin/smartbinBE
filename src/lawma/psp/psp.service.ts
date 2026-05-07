@@ -61,7 +61,6 @@ export class PspService {
       status: "active",
       role: "administrator",
     })
-
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
 
     await this.cacheService.set(
@@ -98,6 +97,7 @@ export class PspService {
       name: pspData.company_name,
       id: pspData._id,
     };
+    
   }
 
   async getPspLgas() {

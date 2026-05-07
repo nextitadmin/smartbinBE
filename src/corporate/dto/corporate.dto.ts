@@ -30,6 +30,10 @@ export class CreateCorporateAccountDto {
   @IsString()
   @IsNotEmpty()
   confirmPassword: string;
+
+  @ApiProperty()
+  @IsString()
+  lgaId: string;
 }
 
 export class UpdateProfileDto {

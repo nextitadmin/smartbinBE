@@ -64,10 +64,10 @@ export class ResidentService {
     @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
     @InjectModel(Pickup.name) private pickupModel: Model<Pickup>,
     private ee: EventEmitter2,
-  ) {}
+  ) { }
 
   async registerResident(body: CreateResidentAccountDto) {
-    const { payerId, password, confirmPassword } = body;
+    const { payerId, password, confirmPassword, lgaId } = body;
 
     if (password !== confirmPassword) {
       throw new BadRequestException(
@@ -86,9 +86,10 @@ export class ResidentService {
     if (!payer) {
       throw new NotFoundException('Invalid payerId');
     }
-
+    const lga_Id = new Types.ObjectId(lgaId);
     const newResident = await this.residentModel.create({
       payerId,
+      lgaId: lga_Id,
       firstName: payer.firstName,
       lastName: payer.lastName,
       email: payer.email,
@@ -99,6 +100,7 @@ export class ResidentService {
     await this.userKycModel.create({
       userId: newResident._id,
       userType: UserRole.Resident,
+      lga: newResident.lgaId,
     });
 
     this.ee.emit(
@@ -459,7 +461,7 @@ export class ResidentService {
 
     const latestSmartBinHistory =
       smartBinApplication?.applicationHistory?.[
-        smartBinApplication.applicationHistory.length - 1
+      smartBinApplication.applicationHistory.length - 1
       ] ?? null;
 
     const totalOutstandingBill = totalOutstandingResult?.[0]?.total ?? 0;
@@ -475,23 +477,22 @@ export class ResidentService {
       smartBinApplicationCount: smartBinCount,
       smartBinApplicationDetails: latestSmartBinHistory
         ? {
-            status: latestSmartBinHistory.status,
-            statusDescription: latestSmartBinHistory.description,
-            lastUpdatedDate: latestSmartBinHistory.timestamp,
-            formattedlastUpdatedDate: formatTimestamp(
-              latestSmartBinHistory.timestamp,
-            ),
-          }
+          status: latestSmartBinHistory.status,
+          statusDescription: latestSmartBinHistory.description,
+          lastUpdatedDate: latestSmartBinHistory.timestamp,
+          formattedlastUpdatedDate: formatTimestamp(
+            latestSmartBinHistory.timestamp,
+          ),
+        }
         : {
-            status: 'N/A',
-            statusDescription: 'No application found',
-            lastUpdatedDate: 'N/A',
-          },
+          status: 'N/A',
+          statusDescription: 'No application found',
+          lastUpdatedDate: 'N/A',
+        },
       estimatedAnnualSubscriptionFee: 0,
       nextPickUpDate: lastPickUpDetails
-        ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${
-            lastPickUpDetails.pickupTime
-          }`
+        ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${lastPickUpDetails.pickupTime
+        }`
         : 'N/A',
     };
 

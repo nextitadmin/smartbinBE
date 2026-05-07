@@ -17,6 +17,10 @@ export class CreateAgentAccountDto {
   @ApiProperty()
   @IsString()
   confirmPassword: string;
+
+  @ApiProperty()
+  @IsString()
+  lgaId: string;
 }
 
 export class LoginAgentAccountDto {

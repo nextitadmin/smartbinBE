@@ -19,6 +19,10 @@ export class CreateManagerAccountDto {
   @ApiProperty()
   @IsString()
   confirmPassword: string;
+
+  @ApiProperty()
+  @IsString()
+  lgaId: string;
 }
 
 export class LoginManagerAccountDto {
