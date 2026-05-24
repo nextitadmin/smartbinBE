@@ -47,7 +47,7 @@ export class PayerService {
         MailNotificationEvents.Account.PayerGenerated,
         new SendEmailEvent({
           to: email,
-          from: `"LAWMA REG" <accounts@lawma.co>`,
+          from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`,
           subject: 'Your Payer ID',
           context: {
             firstName: firstName,

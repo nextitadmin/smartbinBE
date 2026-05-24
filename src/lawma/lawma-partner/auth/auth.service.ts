@@ -72,7 +72,7 @@ export class LawmaPartnerAuthService {
       MailNotificationEvents.Account.VerificationOTP,
       new SendEmailEvent({
         to: String(administrator.email),
-        from: `"LAWMA REG" <no-reply@resend.dev>`,
+        from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`,
         subject: 'Your Login Verification Code',
         context: {
           firstName: administrator.name,

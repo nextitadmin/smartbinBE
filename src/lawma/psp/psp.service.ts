@@ -83,7 +83,7 @@ export class PspService {
       MailNotificationEvents.Account.ResetPassword,
       new SendEmailEvent({
         to: psp.administrator_email,
-        from: `"LAWMA REG" <accounts@lawma.co>`,
+        from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`,
         subject: 'Reset Your Password',
         context: {
           firstName: psp.administrator_name,

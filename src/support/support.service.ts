@@ -17,10 +17,9 @@ export class SupportService {
 
         const eventPayload = new SendEmailEvent({
             to: process.env.SUPPORT_TO,
-            from: process.env.SUPPORT_FROM,
+            from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM_SUPPORT}}>`,
             subject: `New Support Request from ${fullName}`,
             context: { fullName, phoneNumber, email, message },
-            replyTo: email,
         });
         this.ee.emit(MailNotificationEvents.Support.NewRequest, eventPayload, file);
 

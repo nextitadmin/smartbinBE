@@ -15,7 +15,7 @@ export class MailerService {
   constructor(private readonly configService: ConfigService<ConfigAttributes>) {
     const { smtp_host, smtp_password, smtp_user, smtp_port } =
       this.configService.get('mail', { infer: true });
-
+    
     this.mailer = createTransport({
       host: smtp_host,
       port: +smtp_port,
@@ -45,7 +45,7 @@ export class MailerService {
 
   async sendMail(options: any) {
     options.html = this.compileTemplate(options.template, options.context);
-    options.from = '"LAWMA REG" <no-reply@healthrak.com>'; // will remove later
+    options.from = options.from ??`"LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`; // will remove later
     await this.mailer.sendMail(options).then(console.log).catch(console.error);
   }
 

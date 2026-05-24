@@ -86,7 +86,7 @@ export class FacilityManagerService {
       MailNotificationEvents.Account.Welcome,
       new SendEmailEvent({
         to: payer.email,
-        from: `"LAWMA REG" <accounts@lawma.co>`,
+        from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}}>`,
         subject: 'Registration Successful',
         context: {
           firstName: payer.firstName,
@@ -136,7 +136,7 @@ export class FacilityManagerService {
       MailNotificationEvents.Account.VerificationOTP,
       new SendEmailEvent({
         to: manager.email,
-        from: `"LAWMA REG" <accounts@lawma.co>`,
+        from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}}>,`,
         subject: 'Your Login Verification Code',
         context: {
           firstName: manager.firstName,
@@ -264,7 +264,7 @@ export class FacilityManagerService {
         MailNotificationEvents.Account.ForgotPassword,
         new SendEmailEvent({
           to: manager.email,
-          from: `"LAWMA REG" <accounts@lawma.co>`,
+          from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}}>`,
           subject: 'Password Reset Request',
           context: {
             firstName: manager.firstName,

@@ -829,7 +829,7 @@ export class SmartBinService {
       MailNotificationEvents.Application.SmartBinUpdate,
       new SendEmailEvent({
         to: teamMember.email,
-        from: `"LAWMA REG" <accounts@lawma.co>`,
+        from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`,
         subject: 'New SmartBin Delivery Assigned',
         context: {
           teamMember: teamMember.name,
