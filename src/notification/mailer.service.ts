@@ -2,28 +2,20 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ConfigAttributes } from '@src/config';
 import { readFileSync } from 'fs';
-import { createTransport, Transporter } from 'nodemailer';
 import { renderString } from 'nunjucks';
 import path from 'path';
+import { Resend } from 'resend';
 import { MailNotificationEvents, SendEmailEvent, Templates } from './dto/event';
 import { OnEvent } from '@nestjs/event-emitter';
-import { template } from 'handlebars';
 
 @Injectable()
 export class MailerService {
-  private mailer: Transporter;
+  private resend: Resend;
+
   constructor(private readonly configService: ConfigService<ConfigAttributes>) {
-    const { smtp_host, smtp_password, smtp_user, smtp_port } =
-      this.configService.get('mail', { infer: true });
-    
-    this.mailer = createTransport({
-      host: smtp_host,
-      port: +smtp_port,
-      auth: {
-        user: smtp_user,
-        pass: smtp_password,
-      },
-    });
+    // Retrieve your Resend API key from your config service
+    // const resendApiKey = this.configService.get<string>('RESEND_API_KEY');
+    this.resend = new Resend(process.env.RESEND_API_KEY);
   }
 
   compileTemplate(templateName: string, context: Record<string, any>) {
@@ -44,9 +36,27 @@ export class MailerService {
   }
 
   async sendMail(options: any) {
-    options.html = this.compileTemplate(options.template, options.context);
-    options.from = options.from ??`"LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`; // will remove later
-    await this.mailer.sendMail(options).then(console.log).catch(console.error);
+    const html = this.compileTemplate(options.template, options.context);
+    const from = options.from ?? 'Medama <noreply@medama.ng>';
+
+    // Format attachments from Multer format to Resend format if they exist
+    const attachments = options.attachments?.map((file: any) => ({
+      filename: file.filename,
+      content: file.content, // Resend accepts Buffer streams directly
+    }));
+
+    try {
+      const data = await this.resend.emails.send({
+        from,
+        to: options.to,
+        subject: options.subject,
+        html,
+        ...(attachments && { attachments }),
+      });
+      console.log('Email sent successfully:', data);
+    } catch (error) {
+      console.error('Failed to send email:', error);
+    }
   }
 
   @OnEvent(MailNotificationEvents.Account.PayerGenerated)
@@ -82,7 +92,7 @@ export class MailerService {
       to,
       context,
       subject,
-    })
+    });
   }
 
   @OnEvent(MailNotificationEvents.Account.ForgotPassword)
@@ -155,12 +165,11 @@ export class MailerService {
       template: Templates.SupportRequest,
       attachments: file
         ? [
-          {
-            filename: file.originalname,
-            content: file.buffer,
-            contentType: file.mimetype,
-          },
-        ]
+            {
+              filename: file.originalname,
+              content: file.buffer,
+            },
+          ]
         : [],
     });
   }
