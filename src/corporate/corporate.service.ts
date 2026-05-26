@@ -46,6 +46,7 @@ import { Bill } from '@models/bill.model';
 import { Wallet } from '@models/wallet.model';
 import { SmartBin } from '@models/smart-bin.model';
 import { Pickup } from '@models/pickup';
+import { Lga } from '@models/lgas.model';
 import { UserKycRepository } from '@models/repository/user-kyc.repository';
 
 @Injectable()
@@ -62,14 +63,15 @@ export class CorporateService {
     @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
     @InjectModel(SmartBin.name) private smartBinModel: Model<SmartBin>,
     @InjectModel(Pickup.name) private pickupModel: Model<Pickup>,
+    @InjectModel(Lga.name) private lgaModel: Model<Lga>,
     private ee: EventEmitter2,
     private jwtService: JwtService,
     private readonly configService: ConfigService<ConfigAttributes>,
     // private readonly userKycRepository: UserKycRepository,
-  ) {}
+  ) { }
 
   async registerCorporate(body: CreateCorporateAccountDto) {
-    const { password, payerId, businessName, confirmPassword } = body;
+    const { password, payerId, businessName, confirmPassword, lgaId } = body;
 
     if (password !== confirmPassword) {
       throw new BadRequestException(
@@ -90,6 +92,12 @@ export class CorporateService {
       throw new NotFoundException('Invalid payerId');
     }
 
+    // Look up the LGA by name
+    const lga = await this.lgaModel.findOne({ name: lgaId });
+    if (!lga) {
+      throw new NotFoundException('Invalid LGA');
+    }
+
     const newBusiness = await this.corporateModel.create({
       payerId,
       businessName,
@@ -98,6 +106,7 @@ export class CorporateService {
       email: payer.email,
       password: password,
       phoneNumber: payer.phoneNumber,
+      lga: lga._id,
     });
 
     await this.userKycModel.create({
@@ -471,7 +480,7 @@ export class CorporateService {
 
     const latestSmartBinHistory =
       smartBinApplication?.applicationHistory?.[
-        smartBinApplication.applicationHistory.length - 1
+      smartBinApplication.applicationHistory.length - 1
       ] ?? null;
 
     const totalOutstandingBill = totalOutstanding[0]?.total || 0;
@@ -488,23 +497,22 @@ export class CorporateService {
       smartBinApplicationCount: smartBinCount,
       smartBinApplicationDetails: latestSmartBinHistory
         ? {
-            status: latestSmartBinHistory.status,
-            statusDescription: latestSmartBinHistory.description,
-            lastUpdatedDate: latestSmartBinHistory.timestamp,
-            formattedlastUpdatedDate: formatTimestamp(
-              latestSmartBinHistory.timestamp,
-            ),
-          }
+          status: latestSmartBinHistory.status,
+          statusDescription: latestSmartBinHistory.description,
+          lastUpdatedDate: latestSmartBinHistory.timestamp,
+          formattedlastUpdatedDate: formatTimestamp(
+            latestSmartBinHistory.timestamp,
+          ),
+        }
         : {
-            status: 'N/A',
-            statusDescription: 'No application found',
-            lastUpdatedDate: 'N/A',
-          },
+          status: 'N/A',
+          statusDescription: 'No application found',
+          lastUpdatedDate: 'N/A',
+        },
       estimatedAnnualSubscriptionFee: 0,
       nextPickUpDate: lastPickUpDetails
-        ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${
-            lastPickUpDetails.pickupTime
-          }`
+        ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${lastPickUpDetails.pickupTime
+        }`
         : 'N/A',
     };
 

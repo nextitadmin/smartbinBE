@@ -69,6 +69,7 @@ export class PayerService {
       };
     } catch (error) {
       throw new InternalServerErrorException(
+        console.log('error message: ' + error),
         'Error creating payer: ' + error.message,
       );
     }
