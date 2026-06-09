@@ -26,7 +26,7 @@ export enum Templates {
   ResetPassword = 'reset-password',
   LoginCode = 'login-code',
   PayerGenerated = 'payer-generated',
-  VerifyOTP = 'verify-otp',
+  VerificationOTP = 'verify-otp',
   Welcome = 'welcome',
   SmartBinUpdate = 'smartbin-update',
   PickupUpdate = 'pickup-update',
