@@ -72,7 +72,7 @@ export class LawmaPartnerAuthService {
       MailNotificationEvents.Account.VerificationOTP,
       new SendEmailEvent({
         to: String(administrator.email),
-        from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`,
+        from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
         subject: 'Your Login Verification Code',
         context: {
           firstName: administrator.name,
@@ -122,7 +122,7 @@ export class LawmaPartnerAuthService {
       await this.administratorModel.create({
         name: 'Lawma Partner',
         email: 'smartbin-partner@lawma.co',
-          phoneNumber: '08123456787',
+        phoneNumber: '08123456787',
         password: 'password',
         role: AdministratorRole.SmartBinPartner,
         status: AdministratorStatus.Active,

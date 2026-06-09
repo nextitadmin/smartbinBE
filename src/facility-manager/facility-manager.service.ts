@@ -86,7 +86,7 @@ export class FacilityManagerService {
       MailNotificationEvents.Account.Welcome,
       new SendEmailEvent({
         to: payer.email,
-        from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}}>`,
+        from: `LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`,
         subject: 'Registration Successful',
         context: {
           firstName: payer.firstName,

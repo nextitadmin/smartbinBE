@@ -118,7 +118,7 @@ export class CorporateService {
       MailNotificationEvents.Account.Welcome,
       new SendEmailEvent({
         to: payer.email,
-        from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`,
+          from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
         subject: 'Corporate Registration Successful',
         context: {
           firstName: newBusiness.businessName,
@@ -171,7 +171,7 @@ export class CorporateService {
       MailNotificationEvents.Account.VerificationOTP,
       new SendEmailEvent({
         to: String(business.email),
-        from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`,
+          from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
         subject: 'Your Login Verification Code',
         context: {
           firstName: business.businessName,
@@ -334,7 +334,7 @@ export class CorporateService {
         MailNotificationEvents.Account.ForgotPassword,
         new SendEmailEvent({
           to: business.email,
-          from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`,
+            from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
           subject: 'Password Reset Request',
           context: {
             firstName: business.businessName,

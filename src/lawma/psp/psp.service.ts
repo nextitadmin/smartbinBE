@@ -83,7 +83,7 @@ export class PspService {
       MailNotificationEvents.Account.ResetPassword,
       new SendEmailEvent({
         to: psp.administrator_email,
-        from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`,
+        from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
         subject: 'Reset Your Password',
         context: {
           firstName: psp.administrator_name,
@@ -97,7 +97,7 @@ export class PspService {
       name: pspData.company_name,
       id: pspData._id,
     };
-    
+
   }
 
   async getPspLgas() {
@@ -106,7 +106,7 @@ export class PspService {
 
   async createPspMembers(pspMembers: CreatePspMembersDTO & { psp_id: string }) {
     const password = generateRandomChars(6, 'alphanum');
-    
+
     const psp = await this.psp
       .findById(pspMembers.psp_id)
       .select('company_name');
@@ -138,7 +138,7 @@ export class PspService {
 
     const userAction = status === "inactive" ? LOGTYPE.PspDeactivated : LOGTYPE.PspActivated
 
-    this.ee.emit(AuditLogEvents.UserActivity,  new LogActionEvent({
+    this.ee.emit(AuditLogEvents.UserActivity, new LogActionEvent({
       action: userAction,
       administrator: admin,
       userType: UserType.Admin

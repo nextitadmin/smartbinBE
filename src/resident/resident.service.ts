@@ -107,7 +107,7 @@ export class ResidentService {
       MailNotificationEvents.Account.Welcome,
       new SendEmailEvent({
         to: payer.email,
-        from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}}>,`,
+        from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
         subject: 'Registration Successful',
         context: {
           firstName: newResident.firstName,
@@ -162,7 +162,7 @@ export class ResidentService {
       MailNotificationEvents.Account.VerificationOTP,
       new SendEmailEvent({
         to: String(resident.email),
-        from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`,
+        from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
         subject: 'Your Login Verification Code',
         context: {
           firstName: resident.firstName,
@@ -306,7 +306,7 @@ export class ResidentService {
         MailNotificationEvents.Account.ForgotPassword,
         new SendEmailEvent({
           to: resident.email,
-          from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`,
+          from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
           subject: 'Password Reset Request',
           context: {
             firstName: resident.firstName,

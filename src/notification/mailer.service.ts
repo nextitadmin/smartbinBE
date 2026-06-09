@@ -28,9 +28,10 @@ export class MailerService {
 
   compileTemplate(templateName: string, context: Record<string, any>) {
     try {
-      const templateFilePath = path.join(
-        __dirname,
-        `../assets/${templateName}.html`,
+      const templateFilePath = path.resolve(
+        process.cwd(),
+        'assets',
+        `${templateName}.html`,
       );
       const getFileContent = readFileSync(templateFilePath).toString();
       return renderString(getFileContent, {
@@ -45,7 +46,7 @@ export class MailerService {
 
   async sendMail(options: any) {
     options.html = this.compileTemplate(options.template, options.context);
-    options.from = '"LAWMA REG" <no-reply@healthrak.com>'; // will remove later
+    options.from = '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>';
     await this.mailer.sendMail(options).then(console.log).catch(console.error);
   }
 
@@ -102,7 +103,7 @@ export class MailerService {
     const { from, context, to, subject } = event.data;
     await this.sendMail({
       from,
-      template: Templates.VerifyOTP,
+      template: Templates.VerificationOTP,
       to,
       context,
       subject,

@@ -80,7 +80,7 @@ export class SmartBinService {
     @InjectModel(TeamMember.name)
     private readonly teamMemberModel: Model<TeamMember>,
     @InjectModel(Lga.name) private readonly lgaModel: Model<Lga>,
-  ) {}
+  ) { }
 
   async getResidentBinApplication(residentId: string, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
@@ -829,7 +829,7 @@ export class SmartBinService {
       MailNotificationEvents.Application.SmartBinUpdate,
       new SendEmailEvent({
         to: teamMember.email,
-        from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`,
+        from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
         subject: 'New SmartBin Delivery Assigned',
         context: {
           teamMember: teamMember.name,
@@ -942,9 +942,8 @@ export class SmartBinService {
     if (customerType === UserRole.Corporate) {
       return customer.businessName || 'N/A';
     } else {
-      return `${customer.firstName || ''} ${customer.lastName || ''}  ${
-        customer.email || ''
-      }`.trim();
+      return `${customer.firstName || ''} ${customer.lastName || ''}  ${customer.email || ''
+        }`.trim();
     }
   }
 
@@ -1134,8 +1133,8 @@ export class SmartBinService {
     const smartBin:
       | (SmartbinDocument & { payment: TransactionAttributes })
       | any = await this.smartbinModel
-      .findById(applicationId)
-      .populate('payment');
+        .findById(applicationId)
+        .populate('payment');
 
     if (!smartBin) {
       throw new NotFoundException('Bin application not found');

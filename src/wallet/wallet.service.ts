@@ -181,7 +181,7 @@ export class WalletService {
       MailNotificationEvents.Application.PickupUpdate,
       new SendEmailEvent({
         to: user.email,
-        from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}}>`,
+           from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
         subject: 'Wallet Application Status Update',
         context: {
           name: user.firstName,

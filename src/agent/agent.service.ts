@@ -46,7 +46,7 @@ export class AgentService {
     @InjectModel(UserKyc.name) private readonly userKycModel: Model<UserKyc>,
     private readonly configService: ConfigService<ConfigAttributes>,
     private ee: EventEmitter2,
-  ) {}
+  ) { }
 
   async registerAgent(body: CreateAgentAccountDto) {
     const { payerId, agencyName, password, confirmPassword, lgaId } = body;
@@ -87,7 +87,7 @@ export class AgentService {
       MailNotificationEvents.Account.Welcome,
       new SendEmailEvent({
         to: newAgent.email,
-        from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`,
+        from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
         subject: 'Registration Successful',
         context: {
           firstName: newAgent.firstName,
@@ -142,7 +142,7 @@ export class AgentService {
       MailNotificationEvents.Account.VerificationOTP,
       new SendEmailEvent({
         to: agent.email,
-        from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`,
+        from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
         subject: 'Your Login Verification Code',
         context: {
           firstName: agent.firstName,
@@ -265,7 +265,7 @@ export class AgentService {
         MailNotificationEvents.Account.ForgotPassword,
         new SendEmailEvent({
           to: agent.email,
-          from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`,
+          from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
           subject: 'Password Reset Request',
           context: {
             firstName: agent.firstName,
@@ -356,5 +356,5 @@ export class AgentService {
     return this.getProfile(tokenDetails.id);
   }
 
-  async verifyResetCode(code: string) {}
+  async verifyResetCode(code: string) { }
 }

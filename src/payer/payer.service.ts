@@ -18,7 +18,7 @@ export class PayerService {
   constructor(
     @InjectModel(Payer.name) private readonly payerModel: Model<PayerDocument>,
     private ee: EventEmitter2,
-  ) {}
+  ) { }
 
   async createPayer(dto: CreatePayerDto) {
     const { firstName, lastName, email, dateOfBirth, nin, phoneNumber } = dto;
@@ -47,7 +47,7 @@ export class PayerService {
         MailNotificationEvents.Account.PayerGenerated,
         new SendEmailEvent({
           to: email,
-          from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`,
+          from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
           subject: 'Your Payer ID',
           context: {
             firstName: firstName,
