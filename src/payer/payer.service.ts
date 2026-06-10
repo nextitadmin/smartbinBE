@@ -64,7 +64,7 @@ export class PayerService {
 
       return {
         message:
-          'Payer created successfully. Payer ID has been sent to your mail',
+          'Payer created successfully. Payer ID has been sent to your email address',
         data: newAccount,
       };
     } catch (error) {
