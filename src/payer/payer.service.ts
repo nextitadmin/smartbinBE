@@ -24,7 +24,7 @@ export class PayerService {
     const { firstName, lastName, email, dateOfBirth, nin, phoneNumber } = dto;
 
     const existing = await this.payerModel
-      .findOne({ email })
+      .findOne({ email, nin, phoneNumber })
       .select('firstName lastName payerId');
     if (existing) {
       return {

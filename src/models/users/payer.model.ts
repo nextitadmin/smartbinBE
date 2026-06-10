@@ -32,7 +32,7 @@ export class Payer implements PayerAttributes {
   @Prop({ required: true, trim: true, lowercase: true, unique: true })
   email: string;
 
-  @Prop({ required: true, trim: true })
+  @Prop({ required: true, unique: true, trim: true })
   phoneNumber: string;
 
   @Prop({ required: true })
