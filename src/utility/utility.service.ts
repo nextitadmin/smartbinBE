@@ -32,10 +32,10 @@ export class UtilityService implements OnModuleInit {
   //   return LAGOS_LGAS;
   // }
 
-  getLgas(): Promise<Lga[]> {
-    let lgas = this.lgaModel.find().exec();
-    console.log(lgas);
-    return this.lgaModel.find().exec();
+  async getLgas(): Promise<Lga[]> {
+    const lgas = await this.lgaModel.find().exec();
+    console.log(lgas); 
+    return lgas;
   }
   
 
