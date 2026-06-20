@@ -19,7 +19,7 @@ export class UtilityController {
 
   @Get('get-lgas')
   async getLgas() {
-    const data = this.utilityService.getLgas();
+    const data = await this.utilityService.getLgas();
     return new SuccessResponse(
       'list of local government fetched successfully',
       data,
