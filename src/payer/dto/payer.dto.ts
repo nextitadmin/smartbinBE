@@ -3,6 +3,8 @@ import {
   IsDateString,
   IsEmail,
   IsString,
+	Min,
+	MinLength,
   Max,
   MaxLength,
 } from 'class-validator';
@@ -24,7 +26,7 @@ export class CreatePayerDto {
   @IsDateString(
     {},
     {
-      message: 'dateOfBirth must be a valid date e.g 2020-01-01',
+      message: 'Date of birth must be a valid date: Year/Month/Day e.g 2000-01-01.',
     },
   )
   dateOfBirth: string;
@@ -34,10 +36,14 @@ export class CreatePayerDto {
   phoneNumber: string;
 
   @ApiProperty({
+    minLength: 11,
     maxLength: 11,
   })
-  @MaxLength(11, {
-    message: 'NIN cannot be more than 11 digits',
+  @MinLength(11, {
+    message: 'NIN cannot be less than 11 digits.',
+  })
+	@MaxLength(11, {
+    message: 'NIN cannot be more than 11 digits.',
   })
   nin: string;
 }
