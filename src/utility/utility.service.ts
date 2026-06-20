@@ -7,6 +7,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Lga } from '@models/lgas.model';
 import { Model } from 'mongoose';
+import { response } from 'express';
 
 @Injectable()
 export class UtilityService implements OnModuleInit {
@@ -32,8 +33,11 @@ export class UtilityService implements OnModuleInit {
   // }
 
   getLgas(): Promise<Lga[]> {
+    let lgas = this.lgaModel.find().exec();
+    console.log(lgas);
     return this.lgaModel.find().exec();
   }
+  
 
   getBusinessSectors(): string[] {
     return BUSINESS_SECTORS;
