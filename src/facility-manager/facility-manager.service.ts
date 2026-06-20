@@ -46,7 +46,7 @@ export class FacilityManagerService {
     private readonly configService: ConfigService<ConfigAttributes>,
     private readonly jwtService: JwtService,
     private ee: EventEmitter2,
-  ) {}
+  ) { }
 
   async register(dto: CreateManagerAccountDto) {
     const {
@@ -86,7 +86,7 @@ export class FacilityManagerService {
       MailNotificationEvents.Account.Welcome,
       new SendEmailEvent({
         to: payer.email,
-        from: `LAWMA SMARTBIN" <${process.env.MAIL_FROM}>`,
+        from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
         subject: 'Registration Successful',
         context: {
           firstName: payer.firstName,
@@ -136,7 +136,7 @@ export class FacilityManagerService {
       MailNotificationEvents.Account.VerificationOTP,
       new SendEmailEvent({
         to: manager.email,
-        from: `"LAWMA SMARTBIN" <${process.env.MAIL_FROM}}>,`,
+        from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
         subject: 'Your Login Verification Code',
         context: {
           firstName: manager.firstName,

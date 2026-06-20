@@ -12,11 +12,11 @@ import { Model } from 'mongoose';
 export class UtilityService implements OnModuleInit {
   constructor(
     @InjectModel(Lga.name) private lgaModel: Model<Lga>
-  ){
+  ) {
 
   }
   async onModuleInit() {
-     for (const name of LAGOS_LGAS) {
+    for (const name of LAGOS_LGAS) {
       const exists = await this.lgaModel.findOne({ name });
       if (!exists) {
         await this.lgaModel.create({ name });
@@ -27,8 +27,12 @@ export class UtilityService implements OnModuleInit {
     return NIGERIAN_STATES;
   }
 
-  getLgas(): string[] {
-    return LAGOS_LGAS;
+  // getLgas(): string[] {
+  //   return LAGOS_LGAS;
+  // }
+
+  getLgas(): Promise<Lga[]> {
+    return this.lgaModel.find().exec();
   }
 
   getBusinessSectors(): string[] {
