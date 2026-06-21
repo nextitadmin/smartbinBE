@@ -76,6 +76,10 @@ export class FacilityManagerService {
       email: payer.email,
       password: password,
     });
+    if (!manager) {
+      console.log(Error);
+      throw new BadRequestException('Failed to create facility manager account');
+    }
 
     await this.userKycModel.create({
       userId: manager._id,

@@ -93,7 +93,7 @@ export class CorporateService {
     }
 
     // Look up the LGA by name
-    const lga = await this.lgaModel.findOne({ name: lgaId });
+    const lga = await this.lgaModel.findOne({ _id: lgaId });
     if (!lga) {
       throw new NotFoundException('Invalid LGA');
     }
@@ -108,6 +108,10 @@ export class CorporateService {
       phoneNumber: payer.phoneNumber,
       lga: lga._id,
     });
+    if (!newBusiness) {
+      console.log(Error);
+      throw new BadRequestException('Failed to create corporate account');
+    }
 
     await this.userKycModel.create({
       userId: newBusiness._id,

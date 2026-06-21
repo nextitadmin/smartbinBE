@@ -96,6 +96,10 @@ export class ResidentService {
       password: password,
       phoneNumber: payer.phoneNumber,
     });
+    if (!newResident) {
+      console.log(Error);
+      throw new BadRequestException('Failed to create resident account');
+    }
 
     await this.userKycModel.create({
       userId: newResident._id,

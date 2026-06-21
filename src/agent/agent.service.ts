@@ -68,7 +68,7 @@ export class AgentService {
     }
     const lga_Id = new Types.ObjectId(lgaId);
     const newAgent = await this.agentModel.create({
-      payerId: payer._id,
+      payerId,
       agencyName,
       firstName: payer.firstName,
       lastName: payer.lastName,
@@ -76,7 +76,11 @@ export class AgentService {
       password: password,
       lgaId: lga_Id,
     });
-
+  if (!newAgent) {
+      console.log(Error);
+      throw new BadRequestException('Failed to create agent account');
+    }
+   
     await this.userKycModel.create({
       userId: newAgent._id,
       userType: UserRole.Agent,
