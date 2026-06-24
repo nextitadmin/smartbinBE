@@ -33,7 +33,6 @@ export class CreateCorporateAccountDto {
 
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
   lgaId: string;
 }
 

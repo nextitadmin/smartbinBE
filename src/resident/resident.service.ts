@@ -46,6 +46,7 @@ import {
 import { UserKyc } from '@models/user-kyc.model';
 import { Pickup } from '@models/pickup';
 import { AuthUser } from '@common/types';
+import { error } from 'console';
 // import { MessagePattern } from '@nestjs/microservices';
 
 @Injectable()
@@ -96,8 +97,9 @@ export class ResidentService {
       password: password,
       phoneNumber: payer.phoneNumber,
     });
+    // if resident is not created log the error to the console
     if (!newResident) {
-      console.log(Error);
+      console.log(error);
       throw new BadRequestException('Failed to create resident account');
     }
 
@@ -112,7 +114,7 @@ export class ResidentService {
       new SendEmailEvent({
         to: payer.email,
         from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
-        subject: 'Registration Successful',
+        subject: 'Resident Registration Successful',
         context: {
           firstName: newResident.firstName,
         },

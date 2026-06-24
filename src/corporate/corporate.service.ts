@@ -48,6 +48,7 @@ import { SmartBin } from '@models/smart-bin.model';
 import { Pickup } from '@models/pickup';
 import { Lga } from '@models/lgas.model';
 import { UserKycRepository } from '@models/repository/user-kyc.repository';
+import { error } from 'console';
 
 @Injectable()
 export class CorporateService {
@@ -93,12 +94,8 @@ export class CorporateService {
     }
 
     // Look up the LGA by name
-    const lga = await this.lgaModel.findOne({ _id: lgaId });
-    if (!lga) {
-      throw new NotFoundException('Invalid LGA');
-    }
-
-    const newBusiness = await this.corporateModel.create({
+    const lga_id = new Types.ObjectId(lgaId);
+   const newBusiness = await this.corporateModel.create({
       payerId,
       businessName,
       firstName: payer.firstName,
@@ -106,16 +103,17 @@ export class CorporateService {
       email: payer.email,
       password: password,
       phoneNumber: payer.phoneNumber,
-      lga: lga._id,
+      lga: lga_id,
     });
     if (!newBusiness) {
-      console.log(Error);
+      console.log(console.error());
       throw new BadRequestException('Failed to create corporate account');
     }
 
     await this.userKycModel.create({
       userId: newBusiness._id,
       userType: UserRole.Corporate,
+      lga: newBusiness.lga,
     });
 
     this.ee.emit(

@@ -34,6 +34,7 @@ import { ConfigService } from '@nestjs/config';
 import { comparePassword } from '@common/utils';
 import { JwtService } from '@nestjs/jwt';
 import { UserKyc } from '@models/user-kyc.model';
+import { error } from 'console';
 
 @Injectable()
 export class FacilityManagerService {
@@ -55,6 +56,7 @@ export class FacilityManagerService {
       confirmPassword,
       organizationName,
       phoneNumber,
+      lgaId
     } = dto;
 
     if (password !== confirmPassword)
@@ -66,32 +68,35 @@ export class FacilityManagerService {
 
     const payer = await this.payerModel.findOne({ payerId });
     if (!payer) throw new NotFoundException('Invalid payerId');
+    const lga_id = new Types.ObjectId(lgaId);
 
     const manager = await this.facilityModel.create({
       payerId,
       organizationName,
       phoneNumber,
+      lgaId: lga_id,
       firstName: payer.firstName,
       lastName: payer.lastName,
       email: payer.email,
       password: password,
     });
     if (!manager) {
-      console.log(Error);
+      console.log(console.error());
       throw new BadRequestException('Failed to create facility manager account');
     }
 
     await this.userKycModel.create({
       userId: manager._id,
       userType: UserRole.Facility,
+      lga: manager.lgaId,
     });
 
     this.ee.emit(
       MailNotificationEvents.Account.Welcome,
       new SendEmailEvent({
-        to: payer.email,
+        to: manager.email,
         from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
-        subject: 'Registration Successful',
+        subject: 'Facility Manager Registration Successful',
         context: {
           firstName: payer.firstName,
           // loginCode,

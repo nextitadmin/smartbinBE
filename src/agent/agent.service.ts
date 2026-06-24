@@ -77,14 +77,14 @@ export class AgentService {
       lgaId: lga_Id,
     });
   if (!newAgent) {
-      console.log(Error);
+      console.log(console.error());
       throw new BadRequestException('Failed to create agent account');
     }
    
     await this.userKycModel.create({
       userId: newAgent._id,
       userType: UserRole.Agent,
-      lgaId: lga_Id,
+      lga: newAgent.lgaId,
     });
 
     this.ee.emit(
@@ -92,7 +92,7 @@ export class AgentService {
       new SendEmailEvent({
         to: newAgent.email,
         from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
-        subject: 'Registration Successful',
+        subject: 'Agent Registration Successful',
         context: {
           firstName: newAgent.firstName,
         },
