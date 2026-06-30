@@ -11,6 +11,7 @@ import {
   IsOptional,
   IsEnum,
 } from 'class-validator';
+import { required } from 'joi';
 
 export class CreateCorporateAccountDto {
   @ApiProperty()
@@ -192,7 +193,8 @@ export class AddCorporateBranchDto {
   @IsNotEmpty({ message: 'Branch address is required' })
   branchAddress: string;
 
-  @ApiProperty()
+  
+  @ApiProperty({required: false})
   @IsString({ message: 'Local Government Area must be a string' })
   @IsNotEmpty({ message: 'Local Government Area is required' })
   localGovernmentArea: string;
