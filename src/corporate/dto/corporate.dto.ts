@@ -196,7 +196,8 @@ export class AddCorporateBranchDto {
   
   @ApiProperty({required: false})
   @IsString({ message: 'Local Government Area must be a string' })
-  @IsNotEmpty({ message: 'Local Government Area is required' })
+  @IsOptional()
+  // @IsNotEmpty({ message: 'Local Government Area is required' })
   localGovernmentArea: string;
 
   @ApiProperty()
