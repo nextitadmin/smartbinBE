@@ -13,7 +13,14 @@ export class FacilityService {
     ) { }
 
     async addFacility(dto: CreateFacilityDto, userId: string) {
-        const data = await this.facilityModel.create({ ...dto, userId: userId });
+        const payload: any = { ...dto, userId: userId };
+        // map DTO field `localGovernment` to model field `lga` (ObjectId)
+        if (dto && (dto as any).localGovernment) {
+            payload.lga = new Types.ObjectId((dto as any).localGovernment);
+            delete payload.localGovernment;
+        }
+
+        const data = await this.facilityModel.create(payload);
         return {
             data
         };

@@ -525,7 +525,13 @@ export class CorporateService {
   }
 
   async addBranch(userId: string, body: AddCorporateBranchDto) {
-    const data = await this.branchModel.create({ ...body, userId: userId });
+    const payload: any = { ...body, userId };
+    if (body && (body as any).localGovernmentArea) {
+      payload.lgaId = new Types.ObjectId((body as any).localGovernmentArea);
+      delete payload.localGovernmentArea;
+    }
+
+    const data = await this.branchModel.create(payload);
 
     return {
       message: 'Branch added to corporation successfully',

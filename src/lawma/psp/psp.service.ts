@@ -62,7 +62,8 @@ export class PspService {
       role: "administrator",
     })
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
-
+    console.log("password reset code", resetCode);
+    console.log("password", password);
     await this.cacheService.set(
       CacheKeys.PspResetPasswordCode(String(resetCode)),
       String(pspData._id),
@@ -96,6 +97,7 @@ export class PspService {
       email: pspData.administrator_email,
       name: pspData.company_name,
       id: pspData._id,
+      password: password
     };
 
   }
