@@ -229,47 +229,46 @@ export class SmartBinService {
     accountType: UserRole;
     applicationData: CreateFacilityApplicationDto;
   }) {
-    const facilty = await this.facility.findOne({
-      _id: applicationData.facilityId,
-      userId: accountId,
-    });
+    if (!applicationData.facilityId) {
+      throw new BadRequestException('facilityId is required');
+    }
+
+    if (!Types.ObjectId.isValid(applicationData.facilityId)) {
+      throw new BadRequestException('facilityId is invalid');
+    }
+
+    const facilty = await this.facility.findById(applicationData.facilityId);
     if (!facilty) {
       throw new NotFoundException('Facility not found');
     }
 
-    if (applicationData.transactionReference) {
-      const successfulCharge = await this.transactionModel.exists({
-        transactionReference: applicationData.transactionReference,
-        userId: accountId,
-        userType: accountType,
-        status: TransactionStatus.Successful,
-      });
+    const payload: any = {
+      userId: String(accountId),
+      customerType: accountType,
+      transactionReference:
+        applicationData.transactionReference || generateRandomChars(10, 'alphanum'),
+      facilityId: facilty._id,
+      binId: `#${generateRandomChars(4, 'number')}`,
+      ...applicationData,
+      applicationHistory: [
+        {
+          timestamp: new Date(),
+          status: SmartBinApplicationStatus.Pending,
+          description: 'Application successful awaiting approval',
+        },
+      ],
+    };
 
-      if (!successfulCharge) {
-        throw new BadRequestException(
-          'Invalid transaction reference. Please ensure the transaction was successful.',
-        );
-      }
+    const lgaId = (applicationData as any).localGovernmentArea || (applicationData as any).localGovernment;
+    if (lgaId) {
+      payload.lga_id = new Types.ObjectId(lgaId);
+      delete payload.localGovernmentArea;
+      delete payload.localGovernment;
     }
 
-    const generateTransactionRef = generateRandomChars(10, 'alphanum');
+    const generateTransactionRef = payload.transactionReference;
     const newBinApplication = await Promise.all([
-      this.smartbinModel.create({
-        userId: String(accountId),
-        customerType: accountType,
-        transactionReference:
-          applicationData.transactionReference || generateTransactionRef,
-        facilityId: facilty._id,
-        binId: `#${generateRandomChars(4, 'number')}`,
-        ...applicationData,
-        applicationHistory: [
-          {
-            timestamp: new Date(),
-            status: SmartBinApplicationStatus.Pending,
-            description: 'Application successful awaiting approval',
-          },
-        ],
-      }),
+      this.smartbinModel.create(payload),
       this.transactionModel.create({
         userId: String(accountId),
         transactionReference: generateTransactionRef,

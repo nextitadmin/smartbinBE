@@ -212,12 +212,36 @@ export class CreateBusinessApplicationDto {
 export class CreateFacilityApplicationDto {
   @ApiProperty()
   @IsString()
-  @IsNotEmpty()
-  payerId: string;
+  @IsOptional()
+  tenantName?: string;
+
+  @ApiProperty({ enum: BinType, default: BinType.Smart })
+  @IsEnum(BinType, {
+    message: `Bin Type must be either '${BinType.Smart}' or '${BinType.Non_Smart}'`,
+  })
+  binType: BinType = BinType.Smart;
 
   @ApiProperty()
   @IsString()
-  address?: string;
+  @IsNotEmpty()
+  email?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  payerId: string;
+
+  @ApiProperty({ enum: LAWMACustomerType, required: false })
+  @IsOptional()
+  @IsEnum(LAWMACustomerType, {
+    message: `Lawma Customer Type must be either '${LAWMACustomerType.New}' or '${LAWMACustomerType.Returning}'`,
+  })
+  lawmaCustomerType?: LAWMACustomerType;
 
   @ApiProperty()
   @IsString()
@@ -233,7 +257,15 @@ export class CreateFacilityApplicationDto {
 
   @ApiProperty()
   @IsString()
+  flatNumber?: string;
+
+  @ApiProperty()
+  @IsString()
   localGovernmentArea?: string;
+
+  @ApiProperty()
+  @IsString()
+  address?: string;
 
   @ApiProperty({
     required: false,
@@ -250,15 +282,7 @@ export class CreateFacilityApplicationDto {
   @IsOptional()
   facilityId?: string;
 
-  @ApiProperty({ enum: BinType, default: BinType.Smart })
-  @IsEnum(BinType, {
-    message: `Bin Type must be either '${BinType.Smart}' or '${BinType.Non_Smart}'`,
-  })
-  binType: BinType = BinType.Smart;
-
-  @ApiProperty({
-    required: false,
-  })
+  @ApiProperty()
   @IsString()
   @IsOptional()
   transactionReference?: string;
