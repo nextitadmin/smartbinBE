@@ -20,10 +20,20 @@ export class FacilityUserService {
   ) {}
 
   async createNewFacilityUser(accountId: string, dto: CreateFacilityUserDto) {
-    const data = await this.facilityUser.create({
-      accountId: accountId,
-      ...dto,
-    });
+    const payload: any = { accountId: accountId, ...dto };
+    if ((dto as any).localGovernment) {
+      try {
+        payload.localGovernmentArea = {
+          id: new Types.ObjectId((dto as any).localGovernment),
+        };
+      } catch (err) {
+        // if invalid id, leave as-is; mongoose will report validation error
+        console.log('Invalid localGovernment id:', err);
+      }
+      delete payload.localGovernment;
+    }
+
+    const data = await this.facilityUser.create(payload);
 
     return { message: 'Facility user added successfully', data: data };
   }

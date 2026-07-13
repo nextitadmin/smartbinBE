@@ -3,6 +3,7 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateResidentAccountDto } from '@src/resident/dto/resident.dto';
 import { Model } from 'mongoose';
+import { ErrorMessages } from '@common/constants';
 import { CreateAgentResidentAccountDto } from './dto/resident-management.dto';
 
 @Injectable()
@@ -34,7 +35,7 @@ export class ResidentsManagementService {
       throw new ConflictException('Resident already exists');
     }
     if (existingEmail) {
-      throw new ConflictException('Email already exists');
+      throw new ConflictException(ErrorMessages.DUPLICATE_EMAIL);
     }
 
     return this.residentModel.create({

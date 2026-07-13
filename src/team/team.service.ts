@@ -6,6 +6,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { TeamMember, TeamMemberDocument } from '@models/team.model';
 import { Model, Types } from 'mongoose';
+import { ErrorMessages } from '@common/constants';
 import { FacilityManagerService } from '@src/facility-manager/facility-manager.service';
 import {
   CreateTeamMemberDto,
@@ -20,7 +21,7 @@ export class TeamService {
   constructor(
     @InjectModel(TeamMember.name)
     private readonly teamMemberModel: Model<TeamMemberDocument>,
-  ) {}
+  ) { }
 
   async addTeamMember({
     userId,
@@ -37,9 +38,7 @@ export class TeamService {
     });
 
     if (existingMember) {
-      throw new BadRequestException(
-        'Team member with this email already exists for this user.',
-      );
+      throw new BadRequestException(ErrorMessages.DUPLICATE_TEAM_EMAIL);
     }
 
     const teamMember = await this.teamMemberModel.create({

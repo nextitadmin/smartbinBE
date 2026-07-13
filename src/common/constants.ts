@@ -41,6 +41,11 @@ export const UtilityBillServiceCategories = [];
 
 export const REMOVE_EXTRA_CHARS_REGEX = /[^\w\s]/gi;
 
+export const ErrorMessages = Object.freeze({
+  DUPLICATE_EMAIL: 'Email already exists',
+  DUPLICATE_TEAM_EMAIL: 'Team member with this email already exists',
+});
+
 export enum ApplicationEnvironment {
   Development = 'development',
   Staging = 'staging',

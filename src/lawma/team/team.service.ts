@@ -7,6 +7,7 @@ import {
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { ErrorMessages } from '@common/constants';
 import {
   CreateLawmaTeamDto,
   UpdateLawmaTeamStatusDto,
@@ -20,7 +21,7 @@ export class TeamService {
   constructor(
     @InjectModel(Administrator.name)
     private readonly teamMemberModel: Model<AdministratorAttributes>,
-  ) {}
+  ) { }
 
   async getTeams() {
     const teamsQuery = {
@@ -52,9 +53,7 @@ export class TeamService {
     });
 
     if (teamMember) {
-      throw new BadRequestException(
-        'Team member with this email already exists',
-      );
+      throw new BadRequestException(ErrorMessages.DUPLICATE_TEAM_EMAIL);
     }
 
     const newTeamMember = await this.teamMemberModel.create({
@@ -94,9 +93,7 @@ export class TeamService {
     });
 
     if (existingEmail) {
-      throw new BadRequestException(
-        'Team member with this email already exists',
-      );
+      throw new BadRequestException(ErrorMessages.DUPLICATE_TEAM_EMAIL);
     }
 
     await this.teamMemberModel.findByIdAndUpdate(id, {

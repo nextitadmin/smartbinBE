@@ -3,6 +3,7 @@ import { Corporate } from '@models/users/corporate.model';
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { ErrorMessages } from '@common/constants';
 import { CreateAgentCorporateAccountDto } from './dto/corporates-management.dto';
 import { AddCorporateBranchDto } from '@src/corporate/dto/corporate.dto';
 
@@ -31,7 +32,7 @@ export class CorporatesManagementService {
       throw new ConflictException('Business Name already exists');
     }
     if (existingEmail) {
-      throw new ConflictException('Email already exists');
+      throw new ConflictException(ErrorMessages.DUPLICATE_EMAIL);
     }
 
     const corporate = await this.corporateModel.create({
