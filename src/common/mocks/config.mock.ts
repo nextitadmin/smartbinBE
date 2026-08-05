@@ -1,8 +1,9 @@
+import { ApplicationEnvironment } from '@common/constants';
 import { ConfigAttributes } from '@src/config';
 
 export const mockConfig: Partial<ConfigAttributes> = {
   database: { uri: 'mysql://void/' },
-  applicationEnvironment: 'test',
+  applicationEnvironment: ApplicationEnvironment.Development,
   port: 0,
 };
 

@@ -181,7 +181,7 @@ export class WalletService {
       MailNotificationEvents.Application.PickupUpdate,
       new SendEmailEvent({
         to: user.email,
-           from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
+        from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
         subject: 'Wallet Application Status Update',
         context: {
           name: user.firstName,
@@ -230,7 +230,7 @@ export class WalletService {
   }
 
   async initiateTopUp(user: AuthUser, dto: TopUpWalletDto) {
-    const transactionReference = `ALAT-${generateRandomChars(
+    const transactionReference = `SBTP-${generateRandomChars(
       16,
       'alphanum',
     ).toUpperCase()}`;
@@ -256,8 +256,8 @@ export class WalletService {
       service: ServiceType.WalletTopUp,
       walletId: String(wallet._id),
       metadata: {
-        description: 'Wallet top-up via AlatPay',
-        paymentMethod: 'Alat By Wema',
+        description: 'Wallet top up',
+        paymentMethod: 'Checkout',
       },
     });
     if (!response.success) {
@@ -295,6 +295,16 @@ export class WalletService {
   }
 
   getWalletCallback(reference: string) {
+    if (
+      this.configService.get('applicationEnvironment') ===
+      ApplicationEnvironment.Production
+    ) {
+      return {
+        paymentCallbackUrl: this.configService.get('frontendUrl'),
+        method: 'GET',
+      };
+    }
+
     const payment_url = `/api/wallets/mock-verify?reference=${reference}`;
     return {
       paymentCallbackUrl: payment_url,

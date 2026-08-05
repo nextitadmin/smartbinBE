@@ -12,16 +12,16 @@ export class AlatByWemaService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService<ConfigAttributes>,
   ) {
-    const alatConfig = this.configService.get('alatpay', { infer: true });
-    const { baseUrl, businessId, apiKey } = alatConfig;
-    this.httpClient = this.httpService.axiosRef.create({
-      baseURL: baseUrl,
-      headers: {
-        'Content-Type': 'application/json',
-        'Business-ID': businessId,
-        'Ocp-Apim-Subscription-Key': apiKey,
-      },
-    });
+    // const alatConfig = this.configService.get('alatpay', { infer: true });
+    // const { baseUrl, businessId, apiKey } = alatConfig;
+    // this.httpClient = this.httpService.axiosRef.create({
+    //   baseURL: baseUrl,
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'Business-ID': businessId,
+    //     'Ocp-Apim-Subscription-Key': apiKey,
+    //   },
+    // });
   }
 
   async getTransactionStatus(

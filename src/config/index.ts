@@ -5,7 +5,7 @@ import { ApplicationEnvironment } from '@common/constants';
 
 export interface ConfigAttributes {
   port: number;
-  applicationEnvironment: string;
+  applicationEnvironment: ApplicationEnvironment;
   logging: {
     level: string;
     disableRequestLogging: boolean;
@@ -30,13 +30,13 @@ export interface ConfigAttributes {
     smtp_password: string;
   };
 
-  alatpay: {
-    businessId: string;
-    apiKey: string;
-    publicKey: string;
-    secretKey: string;
-    baseUrl: string;
-  };
+  // alatpay: {
+  //   businessId: string;
+  //   apiKey: string;
+  //   publicKey: string;
+  //   secretKey: string;
+  //   baseUrl: string;
+  // };
 
   frontendUrl: string;
 
@@ -45,11 +45,18 @@ export interface ConfigAttributes {
     apiKey: string;
     apiSecret: string;
   };
+  paymentProviderKey: string;
+  PAY4IT: {
+    publicKey: string;
+    secretKey: string;
+  };
 }
 
 const config = (): ConfigAttributes => ({
   port: +process.env.PORT,
-  applicationEnvironment: process.env.APPLICATION_ENV || 'development',
+  applicationEnvironment:
+    (process.env.APPLICATION_ENV as ApplicationEnvironment) ||
+    ApplicationEnvironment.Development,
   logging: {
     level: process.env.LOG_LEVEL,
     disableRequestLogging: Boolean(+process.env.DISABLE_REQUEST_LOGGING),
@@ -73,19 +80,24 @@ const config = (): ConfigAttributes => ({
     smtp_port: process.env.MAIL_SMTP_PORT,
   },
 
-  alatpay: {
-    publicKey: process.env.ALAT_CLIENT_ID,
-    secretKey: process.env.ALAT_CLIENT_SECRET,
-    baseUrl: process.env.ALAT_BASE_URL,
-    businessId: process.env.ALAT_BUSINESS_ID,
-    apiKey: process.env.ALAT_API_KEY,
-  },
+  // alatpay: {
+  //   publicKey: process.env.ALAT_CLIENT_ID,
+  //   secretKey: process.env.ALAT_CLIENT_SECRET,
+  //   baseUrl: process.env.ALAT_BASE_URL,
+  //   businessId: process.env.ALAT_BUSINESS_ID,
+  //   apiKey: process.env.ALAT_API_KEY,
+  // },
   frontendUrl: process.env.FRONTEND_URL,
 
   cloudinary: {
     apiKey: process.env.CLOUDINARY_API_KEY,
     apiSecret: process.env.CLOUDINARY_API_SECRET,
     cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+  },
+  paymentProviderKey: process.env.PAYMENT_PROVIDER_KEY,
+  PAY4IT: {
+    publicKey: process.env.PAY4IT_PUBLIC_KEY,
+    secretKey: process.env.PAY4IT_SECRET_KEY,
   },
 });
 
@@ -113,9 +125,9 @@ const schema = Joi.object<Record<string, string>>({
   MAIL_SMTP_HOST: Joi.string().required(),
   MAIL_SMTP_PORT: Joi.string().required(),
 
-  ALAT_CLIENT_ID: Joi.string().required(),
-  ALAT_CLIENT_SECRET: Joi.string().required(),
-  ALAT_BASE_URL: Joi.string().required(),
+  // ALAT_CLIENT_ID: Joi.string().required(),
+  // ALAT_CLIENT_SECRET: Joi.string().required(),
+  // ALAT_BASE_URL: Joi.string().required(),
 
   FRONTEND_URL: Joi.string().required(),
 });

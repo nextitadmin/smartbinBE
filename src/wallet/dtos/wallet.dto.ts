@@ -17,7 +17,9 @@ export class TopUpWalletDto {
   @Min(5000)
   amount: number;
 
-  @ApiProperty()
+  @ApiProperty({
+    required: false,
+  })
   @IsString()
   @IsOptional()
   reference: string;
