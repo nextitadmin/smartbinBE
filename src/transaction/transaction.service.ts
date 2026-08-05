@@ -23,6 +23,7 @@ import { Resident } from '@models/users/resident.model';
 import { Agent } from '@models/users/agent.model';
 import { Corporate } from '@models/users/corporate.model';
 import { FacilityManager } from '@models/users/facility-manager.model';
+import { OnEvent } from '@nestjs/event-emitter';
 
 @Injectable()
 export class TransactionService {
@@ -240,5 +241,30 @@ export class TransactionService {
         },
       },
     );
+  }
+
+  @OnEvent('transaction.completed')
+  async handleTransactionCompleted(
+    reference: string,
+    gatewayResponse: Record<string, any>,
+  ) {
+    const transaction = await this.transactions
+      .findOneAndUpdate(
+        { reference },
+        {
+          $set: {
+            status: TransactionStatus.Successful,
+            completedAt: new Date(),
+            gatewayResponse,
+          },
+        },
+      )
+      .select('status transactionReference')
+      .lean();
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found');
+    }
+
+    return transaction.status;
   }
 }

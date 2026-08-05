@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { SuccessResponse } from '@common/http';
@@ -28,5 +28,11 @@ export class PaymentController {
       'Payment notification processed successfully',
       response,
     );
+  }
+
+  @Get('verify/:reference')
+  async verifyPayment(@Param('reference') reference: string) {
+    const response = await this.paymentService.tsq(reference);
+    return new SuccessResponse('Payment verified successfully', response);
   }
 }

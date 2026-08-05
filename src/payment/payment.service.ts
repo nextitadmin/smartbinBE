@@ -1,7 +1,17 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ConfigAttributes } from '@src/config';
 import { Pay4ItProvider } from './providers/pay4it.provider';
+import { InjectModel } from '@nestjs/mongoose';
+import { Transaction } from '@models/transaction.model';
+import { Model } from 'mongoose';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class PaymentService {
@@ -10,6 +20,8 @@ export class PaymentService {
   constructor(
     private readonly configService: ConfigService<ConfigAttributes>,
     private pay4ItProvider: Pay4ItProvider,
+    @InjectModel(Transaction.name) private transactionModel: Model<Transaction>,
+    private ee: EventEmitter2,
   ) {}
 
   async handlePaymentNotification(
@@ -25,14 +37,42 @@ export class PaymentService {
     const [provider, key] = paymentProviderKey.split(':');
     if (provider === 'PAY4IT') {
       // verify PAY4IT payment
-      await this.pay4ItProvider.verifyPayment(key);
-      return {
-        success: true,
-        message: 'Payment verified successfully',
-      };
+      const [notificationItem] = notification.notificationItems;
+      const response = await this.pay4ItProvider.verifyPayment(
+        notificationItem.data.reference,
+      );
+      if (
+        response.status === 'success' &&
+        response.data.status === 'Successful'
+      ) {
+        await this.ee.emitAsync(
+          'transaction.completed',
+          response.data.payments.paymentReference,
+          response.data,
+        );
+        return {
+          success: true,
+          message: 'Payment verified successfully',
+        };
+      }
+      throw new UnprocessableEntityException(
+        'Payment verification failed or not successful',
+      );
     }
 
     this.logger.error({ message: 'Invalid payment provider', paymentProvider });
     throw new BadRequestException('Invalid payment!');
+  }
+
+  async tsq(reference: string) {
+    const tx = await this.transactionModel
+      .findOne({ reference })
+      .select('status transactionReference')
+      .lean();
+    if (!tx) {
+      throw new NotFoundException('Transaction not found');
+    }
+
+    return tx;
   }
 }
