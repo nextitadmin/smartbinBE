@@ -66,7 +66,7 @@ export class PaymentService {
 
   async tsq(reference: string) {
     const tx = await this.transactionModel
-      .findOne({ reference })
+      .findOne({ transactionReference: reference })
       .select('status transactionReference')
       .lean();
     if (!tx) {
