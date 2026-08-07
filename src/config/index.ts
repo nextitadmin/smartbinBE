@@ -50,6 +50,8 @@ export interface ConfigAttributes {
     publicKey: string;
     secretKey: string;
   };
+  CACHE_URL?: string;
+  REDIS_URL?: string;
 }
 
 const config = (): ConfigAttributes => ({
@@ -99,6 +101,8 @@ const config = (): ConfigAttributes => ({
     publicKey: process.env.PAY4IT_PUBLIC_KEY,
     secretKey: process.env.PAY4IT_SECRET_KEY,
   },
+  CACHE_URL: process.env.CACHE_URL,
+  REDIS_URL: process.env.REDIS_URL,
 });
 
 const schema = Joi.object<Record<string, string>>({
@@ -130,6 +134,9 @@ const schema = Joi.object<Record<string, string>>({
   // ALAT_BASE_URL: Joi.string().required(),
 
   FRONTEND_URL: Joi.string().required(),
+
+  CACHE_URL: Joi.string().uri({ scheme: ['redis', 'rediss'] }).optional(),
+  REDIS_URL: Joi.string().uri({ scheme: ['redis', 'rediss'] }).optional(),
 });
 
 export const configModuleOpts: ConfigModuleOptions = {

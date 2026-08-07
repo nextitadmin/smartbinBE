@@ -11,6 +11,7 @@ export const events = Object.freeze({
   },
   transactions: {
     updated: 'transaction.updated',
+    completed: 'transaction.completed',
   },
   webhook: {
     requestReceived: 'webhook.request.received',

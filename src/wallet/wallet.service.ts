@@ -4,6 +4,8 @@ import {
   UnauthorizedException,
   BadRequestException,
   UnprocessableEntityException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -15,6 +17,7 @@ import {
 } from './dtos/wallet.dto';
 import * as crypto from 'crypto';
 import {
+  PostAction,
   ServiceType,
   Transaction,
   TransactionStatus,
@@ -39,6 +42,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 export class WalletService {
   constructor(
     @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
+    @Inject(forwardRef(() => TransactionService))
     private readonly transactionService: TransactionService,
     private readonly configService: ConfigService<ConfigAttributes>,
     private readonly eventEmitter: EventEmitter2,
@@ -258,6 +262,7 @@ export class WalletService {
       metadata: {
         description: 'Wallet top up',
         paymentMethod: 'Checkout',
+        postAction: PostAction.WalletTopUp,
       },
     });
     if (!response.success) {
@@ -281,17 +286,56 @@ export class WalletService {
     const transaction =
       await this.transactionService.mockTransactionPaid(reference);
     if (transaction.data.walletId) {
-      await this.walletModel.findByIdAndUpdate(transaction.data.walletId, {
-        $inc: {
-          available_balance: transaction.data.amount,
-          ledger_balance: transaction.data.amount,
-        },
+      await this.creditWalletForTransaction({
+        walletId: transaction.data.walletId,
+        amount: transaction.data.amount,
+        transactionReference: reference,
       });
     }
 
     return {
       message: 'Transaction verified and wallet credited',
     };
+  }
+
+  /**
+   * Idempotent wallet credit for a completed top-up transaction.
+   * Safe to call on BullMQ retries.
+   */
+  async creditWalletForTransaction(params: {
+    walletId: Types.ObjectId | string;
+    amount: number;
+    transactionReference: string;
+  }) {
+    if (!params.walletId) {
+      throw new BadRequestException(
+        `Cannot credit wallet: missing walletId for ${params.transactionReference}`,
+      );
+    }
+    if (!params.amount || params.amount <= 0) {
+      throw new BadRequestException(
+        `Cannot credit wallet: invalid amount for ${params.transactionReference}`,
+      );
+    }
+
+    const wallet = await this.walletModel.findByIdAndUpdate(
+      params.walletId,
+      {
+        $inc: {
+          available_balance: params.amount,
+          ledger_balance: params.amount,
+        },
+      },
+      { new: true },
+    );
+
+    if (!wallet) {
+      throw new NotFoundException(
+        `Wallet not found for transaction ${params.transactionReference}`,
+      );
+    }
+
+    return wallet;
   }
 
   getWalletCallback(reference: string) {

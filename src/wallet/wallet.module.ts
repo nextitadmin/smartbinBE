@@ -1,10 +1,7 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { WalletService } from './wallet.service';
-// import { FacilityWalletController } from './facilityM.wallet.controller';
-import { AgentController } from '@src/agent/agent.controller';
 import { Wallet, WalletSchema } from '../models/wallet.model';
 import { Transaction, TransactionSchema } from '@models/transaction.model';
-import { TransactionService } from '@src/transaction/transaction.service';
 import { Payer, PayerSchema } from '@models/users/payer.model';
 import { AgentService } from '@src/agent/agent.service';
 import { ResidentService } from '@src/resident/resident.service';
@@ -21,7 +18,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
 import { Bill, BillSchema } from '@models/bill.model';
-import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
 import { TransactionModule } from '@src/transaction/transaction.module';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { Branch, BranchSchema } from '@models/branch.model';
@@ -30,8 +26,8 @@ import { PayerService } from '@src/payer/payer.service';
 import { Pickup, PickupSchema } from '@models/pickup';
 import { Facility, FacilitySchema } from '@models/facilities';
 import { TeamMember, TeamMemberSchema } from '@models/team.model';
-import { UserKycRepository } from '@models/repository/user-kyc.repository';
 import { Lga, LgaSchema } from '@models/lgas.model';
+
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -49,22 +45,18 @@ import { Lga, LgaSchema } from '@models/lgas.model';
       { name: Pickup.name, schema: PickupSchema },
       { name: Facility.name, schema: FacilitySchema },
       { name: TeamMember.name, schema: TeamMemberSchema },
-      {name: Lga.name, schema:LgaSchema}
+      { name: Lga.name, schema: LgaSchema },
     ]),
-    // SmartBinModule,
-    TransactionModule,
-   
+    forwardRef(() => TransactionModule),
   ],
   providers: [
     WalletService,
-    TransactionService,
     ResidentService,
     CorporateService,
     FacilityManagerService,
     AgentService,
     SmartBinService,
     PayerService,
-    // UserKycRepository,
   ],
   controllers: [WalletController],
   exports: [WalletService],

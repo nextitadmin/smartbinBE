@@ -6,16 +6,17 @@ import { Transaction, TransactionSchema } from '@models/transaction.model';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PayerModule } from '@src/payer/payer.module';
 import { Resident, ResidentSchema } from '@models/users/resident.model';
-import { FacilityManager, FacilityManagerSchema } from '@models/users/facility-manager.model';
+import {
+  FacilityManager,
+  FacilityManagerSchema,
+} from '@models/users/facility-manager.model';
 import { Agent, AgentSchema } from '@models/users/agent.model';
 import { Corporate, CorporateSchema } from '@models/users/corporate.model';
-
+import { WalletModule } from '@src/wallet/wallet.module';
+import { TransactionCompletedProcessor } from './processors/transaction-completed.processor';
 
 @Module({
   imports: [
-    // CustomerModule,
-    // ProvidersModule,
-    // WalletModule,
     MongooseModule.forFeature([
       {
         name: Transaction.name,
@@ -24,20 +25,17 @@ import { Corporate, CorporateSchema } from '@models/users/corporate.model';
       { name: Resident.name, schema: ResidentSchema },
       { name: FacilityManager.name, schema: FacilityManagerSchema },
       { name: Agent.name, schema: AgentSchema },
-      { name: Corporate.name, schema: CorporateSchema }
-      //     {
-      //       name: Wallet.name,
-      //       schema: WalletSchema,
-      //     },
-      //     {
-      //       name: Commission.name,
-      //       schema: CommissionSchema,
-      //     },
+      { name: Corporate.name, schema: CorporateSchema },
     ]),
     forwardRef(() => PayerModule),
+    forwardRef(() => WalletModule),
   ],
-  providers: [TransactionService, TransactionWorker],
+  providers: [
+    TransactionService,
+    TransactionWorker,
+    TransactionCompletedProcessor,
+  ],
   controllers: [TransactionController],
   exports: [TransactionService],
 })
-export class TransactionModule { }
+export class TransactionModule {}

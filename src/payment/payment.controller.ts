@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Request } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { SuccessResponse } from '@common/http';
@@ -13,9 +13,6 @@ export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   @Post('notification/:paymentProviderKey')
-  @ApiBody({
-    type: Object,
-  })
   async handlePaymentNotification(
     @Body() body: Record<string, any>,
     @Param('paymentProviderKey') paymentProviderKey: string,

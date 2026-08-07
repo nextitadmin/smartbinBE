@@ -15,12 +15,14 @@ export class Pay4ItProvider {
     const { secretKey, publicKey } = this.configService.get('PAY4IT', {
       infer: true,
     });
+    console.log({ secretKey, publicKey });
     const response = await this.httpService.axiosRef.post(
       'https://seerbitapi.com/api/v2/encrypt/keys',
       {
         key: `${secretKey}.${publicKey}`,
       },
     );
+    console.log({ response });
     const key = response.data.data?.EncryptedSecKey?.encryptedKey;
     if (!key) {
       this.logger.error({

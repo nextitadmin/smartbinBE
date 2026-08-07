@@ -49,6 +49,7 @@ import { TeamModule } from './team/team.module';
 import { SuperAdminModule } from './super-admin/super-admin.module';
 import { LawmaModule } from './lawma/lawma.module';
 import { RbacModule } from './rbac/rbac.module';
+import { QueuesModule } from './queues/queues.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { RbacModule } from './rbac/rbac.module';
     CacheModule.registerAsync(cacheModuleConfigOpts),
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
+    QueuesModule,
     HttpModule,
     NotificationModule,
     PaymentModule,

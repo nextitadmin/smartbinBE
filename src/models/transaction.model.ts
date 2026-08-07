@@ -30,6 +30,20 @@ export enum ServiceType {
   WalletCharge = 'Wallet Charge',
 }
 
+export enum PostAction {
+  None = 'NONE',
+  WasteDisposal = 'WASTE_BIN_DISPOSAL',
+  Subscription = 'SUBSCRIPTION',
+  SmartBinPurchase = 'SMART_BIN_PURCHASE',
+  WalletTopUp = 'WALLET_TOPUP',
+  WalletCharge = 'WALLET_CHARGE',
+}
+
+export interface TransactionMetadata {
+  postAction?: PostAction;
+  [key: string]: any;
+}
+
 export interface TransactionAttributes {
   userId: Types.ObjectId;
   userType: UserRole;
@@ -40,6 +54,7 @@ export interface TransactionAttributes {
   service: ServiceType;
   paymentMethod: PaymentMethod;
   gatewayResponse?: Record<string, any>;
+  metadata?: TransactionMetadata;
   description?: string;
   createdAt?: Date;
   completedAt?: Date;
@@ -108,9 +123,12 @@ export class Transaction implements TransactionAttributes {
 
   @Prop({
     required: false,
-    type: SchemaTypes.Mixed,
+    type: Object,
+    default: {
+      postAction: PostAction.None,
+    },
   })
-  meta: any;
+  metadata: TransactionMetadata;
 }
 
 export type TransactionDocument = Transaction & Document;

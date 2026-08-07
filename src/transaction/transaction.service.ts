@@ -1,13 +1,16 @@
 import { generateRandomChars } from '@common/utils';
 import {
+  PostAction,
   ServiceType,
   Transaction,
+  TransactionMetadata,
   TransactionStatus,
 } from '@models/transaction.model';
 import { UserRole } from '@models/types';
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
   forwardRef,
   Inject,
@@ -17,16 +20,19 @@ import { Model } from 'mongoose';
 import { Types } from 'mongoose';
 import { AuthUser } from '@common/types';
 import { Paging } from '@common/http';
-import { toWords } from 'number-to-words'; // make sure you installed this
+import { toWords } from 'number-to-words';
 import { PayerService } from '@src/payer/payer.service';
 import { Resident } from '@models/users/resident.model';
 import { Agent } from '@models/users/agent.model';
 import { Corporate } from '@models/users/corporate.model';
 import { FacilityManager } from '@models/users/facility-manager.model';
-import { OnEvent } from '@nestjs/event-emitter';
+import { WalletService } from '@src/wallet/wallet.service';
+import { TransactionCompletedJob } from './dto/transaction-completed.job';
 
 @Injectable()
 export class TransactionService {
+  private readonly logger = new Logger(TransactionService.name);
+
   constructor(
     @InjectModel(Transaction.name) private transactions: Model<Transaction>,
     @Inject(forwardRef(() => PayerService))
@@ -36,6 +42,8 @@ export class TransactionService {
     @InjectModel('Corporate') private readonly corporateModel: Model<Corporate>,
     @InjectModel('FacilityManager')
     private readonly facilityManagerModel: Model<FacilityManager>,
+    @Inject(forwardRef(() => WalletService))
+    private readonly walletService: WalletService,
   ) {}
 
   private convertToWords(amount: number): string {
@@ -57,7 +65,7 @@ export class TransactionService {
     service: ServiceType;
     walletId?: string;
     reference?: string;
-    metadata?: Record<string, any>;
+    metadata?: TransactionMetadata & Record<string, any>;
   }) {
     if (!reference) {
       reference = `TX-${Date.now()}-${generateRandomChars(
@@ -85,7 +93,9 @@ export class TransactionService {
         service === ServiceType.WalletCharge
           ? TransactionStatus.Successful
           : TransactionStatus.Abandoned,
-      meta: metadata || {},
+      metadata: metadata || {
+        postAction: PostAction.None,
+      },
     });
 
     return {
@@ -243,28 +253,100 @@ export class TransactionService {
     );
   }
 
-  @OnEvent('transaction.completed')
-  async handleTransactionCompleted(
-    reference: string,
-    gatewayResponse: Record<string, any>,
-  ) {
-    const transaction = await this.transactions
-      .findOneAndUpdate(
-        { reference },
-        {
-          $set: {
-            status: TransactionStatus.Successful,
-            completedAt: new Date(),
-            gatewayResponse,
-          },
-        },
-      )
-      .select('status transactionReference')
+  /**
+   * Idempotent completion handler for webhook-driven payments (BullMQ worker).
+   * Safe across retries: status update and wallet credit are each guarded.
+   */
+  async completeFromWebhook(data: TransactionCompletedJob) {
+    const existing = await this.transactions
+      .findOne({ transactionReference: data.reference })
       .lean();
-    if (!transaction) {
-      throw new NotFoundException('Transaction not found');
+
+    if (!existing) {
+      this.logger.warn({
+        message: 'Transaction not found for completion job',
+        reference: data.reference,
+        provider: data.provider,
+      });
+      return;
     }
 
-    return transaction.status;
+    let transaction = existing;
+
+    if (existing.status !== TransactionStatus.Successful) {
+      const updated = await this.transactions
+        .findOneAndUpdate(
+          {
+            transactionReference: data.reference,
+            status: { $ne: TransactionStatus.Successful },
+          },
+          {
+            $set: {
+              status: TransactionStatus.Successful,
+              completedAt: new Date(),
+              gatewayResponse: data.gatewayResponse,
+            },
+          },
+          { new: true },
+        )
+        .lean();
+
+      if (updated) {
+        transaction = updated;
+      } else {
+        // Race: another worker marked it successful
+        transaction = await this.transactions
+          .findOne({ transactionReference: data.reference })
+          .lean();
+        if (!transaction) {
+          return;
+        }
+      }
+    } else {
+      this.logger.log({
+        message: 'Transaction already successful; checking post-actions',
+        reference: data.reference,
+      });
+    }
+
+    if (
+      transaction.metadata?.postAction === PostAction.WalletTopUp &&
+      transaction.walletId &&
+      !transaction.metadata?.walletCredited
+    ) {
+      // Claim credit slot first so concurrent/retried jobs cannot double-credit.
+      const claimed = await this.transactions
+        .findOneAndUpdate(
+          {
+            transactionReference: data.reference,
+            'metadata.walletCredited': { $ne: true },
+          },
+          { $set: { 'metadata.walletCredited': true } },
+          { new: true },
+        )
+        .lean();
+
+      if (!claimed) {
+        this.logger.log({
+          message: 'Wallet already credited; skipping',
+          reference: data.reference,
+        });
+        return;
+      }
+
+      try {
+        await this.walletService.creditWalletForTransaction({
+          walletId: transaction.walletId,
+          amount: transaction.amount,
+          transactionReference: transaction.transactionReference,
+        });
+      } catch (error) {
+        await this.transactions.updateOne(
+          { transactionReference: data.reference },
+          { $unset: { 'metadata.walletCredited': 1 } },
+        );
+        throw error;
+      }
+    }
   }
 }

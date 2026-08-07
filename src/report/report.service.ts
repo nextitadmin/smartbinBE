@@ -183,9 +183,9 @@ export class ReportService {
         transactionId: txn.transactionReference,
         receiptId: txn._id,
         service,
-        branch: txn.meta?.branch,
-        tenantName: txn.meta?.tenantName,
-        businessName: txn.meta?.businessName,
+        branch: txn.metadata?.branch,
+        tenantName: txn.metadata?.tenantName,
+        businessName: txn.metadata?.businessName,
         amount,
         paymentMethod: txn.paymentMethod,
         paidAt: txn.createdAt,
@@ -660,9 +660,7 @@ export class ReportService {
     if (type === ReportType.WasteDisposed) {
       data = await this.pspWasteDisposedReport(admin, dto);
     } else {
-      throw new NotFoundException(
-        'Unsupported report type for PSP Admin.',
-      );
+      throw new NotFoundException('Unsupported report type for PSP Admin.');
     }
 
     const report = await this.reportModel.create({

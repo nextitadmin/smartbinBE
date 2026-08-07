@@ -11,7 +11,10 @@ import { Pay4ItProvider } from './providers/pay4it.provider';
 import { InjectModel } from '@nestjs/mongoose';
 import { Transaction } from '@models/transaction.model';
 import { Model } from 'mongoose';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { Topics } from '@common/topics';
+import { TransactionCompletedJob } from '@src/transaction/dto/transaction-completed.job';
 
 @Injectable()
 export class PaymentService {
@@ -21,7 +24,8 @@ export class PaymentService {
     private readonly configService: ConfigService<ConfigAttributes>,
     private pay4ItProvider: Pay4ItProvider,
     @InjectModel(Transaction.name) private transactionModel: Model<Transaction>,
-    private ee: EventEmitter2,
+    @InjectQueue(Topics.Queues.Transactions)
+    private readonly transactionsQueue: Queue<TransactionCompletedJob>,
   ) {}
 
   async handlePaymentNotification(
@@ -29,6 +33,7 @@ export class PaymentService {
     paymentProvider: string,
   ): Promise<any> {
     const paymentProviderKey = this.configService.get('paymentProviderKey');
+    const environment = this.configService.get('applicationEnvironment');
     if (!paymentProviderKey) {
       this.logger.error({ message: 'Payment provider key is missing' });
       throw new BadRequestException('Invalid payment!');
@@ -36,27 +41,23 @@ export class PaymentService {
 
     const [provider, key] = paymentProviderKey.split(':');
     if (provider === 'PAY4IT') {
-      // verify PAY4IT payment
       const [notificationItem] = notification.notificationItems;
-      const response = await this.pay4ItProvider.verifyPayment(
-        notificationItem.data.reference,
-      );
-      if (
-        response.status === 'success' &&
-        response.data.status === 'Successful'
-      ) {
-        await this.ee.emitAsync(
-          'transaction.completed',
-          response.data.payments.paymentReference,
-          response.data,
-        );
-        return {
-          success: true,
-          message: 'Payment verified successfully',
-        };
+      const { notificationRequestItem } = notificationItem;
+      const reference = notificationRequestItem.data.reference;
+      if (environment === 'production') {
+        const response = await this.pay4ItProvider.verifyPayment(reference);
+        if (
+          response.status !== 'success' &&
+          response.data.status !== 'Successful'
+        ) {
+          throw new UnprocessableEntityException(
+            'Payment verification failed or not successful',
+          );
+        }
       }
-      throw new UnprocessableEntityException(
-        'Payment verification failed or not successful',
+      return await this.queueTransactionCompleted(
+        reference,
+        notificationRequestItem,
       );
     }
 
@@ -74,5 +75,26 @@ export class PaymentService {
     }
 
     return tx;
+  }
+
+  async queueTransactionCompleted(reference: string, gatewayResponse: any) {
+    await this.transactionsQueue.add(
+      Topics.Jobs.TransactionCompleted,
+      {
+        reference,
+        gatewayResponse,
+        provider: 'PAY4IT',
+        receivedAt: new Date().toISOString(),
+      },
+      {
+        jobId: `tx-completed-${reference}`,
+      },
+    );
+
+    this.logger.log({
+      message: 'Enqueued transaction.completed',
+      reference,
+      provider: 'Pay4It',
+    });
   }
 }
