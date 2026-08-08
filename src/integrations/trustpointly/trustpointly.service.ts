@@ -12,10 +12,7 @@ import { AxiosError, AxiosInstance } from 'axios';
  * not be completed (network / 5xx / unexpected shape).
  */
 export type NinVerificationStatus =
-  | 'verified'
-  | 'pending'
-  | 'rejected'
-  | 'error';
+  'verified' | 'pending' | 'rejected' | 'error';
 
 /**
  * Curated, non-sensitive identity subset returned to callers for display /
@@ -60,25 +57,9 @@ export class TrustpointlyService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService<ConfigAttributes>,
   ) {
-    const { baseUrl, testApiKey, liveApiKey } = this.configService.get('kyc', {
+    const { baseUrl, apiKey } = this.configService.get('kyc', {
       infer: true,
     });
-
-    const environment = this.configService.get('applicationEnvironment', {
-      infer: true,
-    });
-
-    const apiKey =
-      environment === ApplicationEnvironment.Production
-        ? liveApiKey
-        : testApiKey;
-
-    // TEMP DIAGNOSTIC — remove after debugging NIN verification config
-    this.logger.log(
-      `TrustPointly config: env=${environment}, baseUrl=${baseUrl}, apiKeyLen=${
-        apiKey?.length ?? 0
-      }, createFn=${typeof this.httpService.axiosRef.create}`,
-    );
 
     this.httpClient = this.httpService.axiosRef.create({
       baseURL: baseUrl,
@@ -142,11 +123,21 @@ export class TrustpointlyService {
     const identity = this.safeIdentity(data?.data);
 
     if (rawStatus === 'pending') {
-      return { status: 'pending', reference, providerStatus: rawStatus, identity };
+      return {
+        status: 'pending',
+        reference,
+        providerStatus: rawStatus,
+        identity,
+      };
     }
 
     if (['rejected', 'failed', 'declined'].includes(rawStatus)) {
-      return { status: 'rejected', reference, providerStatus: rawStatus, identity };
+      return {
+        status: 'rejected',
+        reference,
+        providerStatus: rawStatus,
+        identity,
+      };
     }
 
     // Treat an explicit success verdict, or a 200 with identity data, as verified.
@@ -156,11 +147,21 @@ export class TrustpointlyService {
       ) ||
       data?.data
     ) {
-      return { status: 'verified', reference, providerStatus: rawStatus, identity };
+      return {
+        status: 'verified',
+        reference,
+        providerStatus: rawStatus,
+        identity,
+      };
     }
 
     // Unknown shape: don't guess a pass — leave for manual review.
-    return { status: 'pending', reference, providerStatus: rawStatus, identity };
+    return {
+      status: 'pending',
+      reference,
+      providerStatus: rawStatus,
+      identity,
+    };
   }
 
   /**
@@ -168,7 +169,9 @@ export class TrustpointlyService {
    * provider's `data` block. Every other key (photo, signature, nin, vnin,
    * nok_*, addresses, …) is dropped here and never leaves this service.
    */
-  private safeIdentity(dataBlock: Record<string, any> | undefined): NinIdentity | undefined {
+  private safeIdentity(
+    dataBlock: Record<string, any> | undefined,
+  ): NinIdentity | undefined {
     if (!dataBlock || typeof dataBlock !== 'object') return undefined;
 
     const identity: NinIdentity = {

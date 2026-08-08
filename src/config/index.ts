@@ -40,8 +40,7 @@ export interface ConfigAttributes {
 
   kyc: {
     baseUrl: string;
-    testApiKey: string;
-    liveApiKey: string;
+    apiKey: string;
   };
 
   frontendUrl: string;
@@ -97,8 +96,7 @@ const config = (): ConfigAttributes => ({
   },
   kyc: {
     baseUrl: process.env.KYC_BASE_URL,
-    testApiKey: process.env.KYC_TEST_API_KEY,
-    liveApiKey: process.env.KYC_LIVE_API_KEY,
+    apiKey: process.env.KYC_API_KEY,
   },
   frontendUrl: process.env.FRONTEND_URL,
 
@@ -147,13 +145,16 @@ const schema = Joi.object<Record<string, string>>({
   ALAT_API_KEY: Joi.string().required(),
 
   KYC_BASE_URL: Joi.string().uri().required(),
-  KYC_TEST_API_KEY: Joi.string().required(),
-  KYC_LIVE_API_KEY: Joi.string().allow('').optional(),
+  KYC_API_KEY: Joi.string().required(),
 
   FRONTEND_URL: Joi.string().required(),
 
-  CACHE_URL: Joi.string().uri({ scheme: ['redis', 'rediss'] }).optional(),
-  REDIS_URL: Joi.string().uri({ scheme: ['redis', 'rediss'] }).optional(),
+  CACHE_URL: Joi.string()
+    .uri({ scheme: ['redis', 'rediss'] })
+    .optional(),
+  REDIS_URL: Joi.string()
+    .uri({ scheme: ['redis', 'rediss'] })
+    .optional(),
 });
 
 export const configModuleOpts: ConfigModuleOptions = {
