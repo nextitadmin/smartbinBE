@@ -38,6 +38,12 @@ export interface ConfigAttributes {
     baseUrl: string;
   };
 
+  kyc: {
+    baseUrl: string;
+    testApiKey: string;
+    liveApiKey: string;
+  };
+
   frontendUrl: string;
 
   cloudinary: {
@@ -80,6 +86,11 @@ const config = (): ConfigAttributes => ({
     businessId: process.env.ALAT_BUSINESS_ID,
     apiKey: process.env.ALAT_API_KEY,
   },
+  kyc: {
+    baseUrl: process.env.KYC_BASE_URL,
+    testApiKey: process.env.KYC_TEST_API_KEY,
+    liveApiKey: process.env.KYC_LIVE_API_KEY,
+  },
   frontendUrl: process.env.FRONTEND_URL,
 
   cloudinary: {
@@ -116,6 +127,10 @@ const schema = Joi.object<Record<string, string>>({
   ALAT_CLIENT_ID: Joi.string().required(),
   ALAT_CLIENT_SECRET: Joi.string().required(),
   ALAT_BASE_URL: Joi.string().required(),
+
+  KYC_BASE_URL: Joi.string().uri().required(),
+  KYC_TEST_API_KEY: Joi.string().required(),
+  KYC_LIVE_API_KEY: Joi.string().allow('').optional(),
 
   FRONTEND_URL: Joi.string().required(),
 });

@@ -12,6 +12,7 @@ import {
   CorporateTeamSchema,
 } from '@models/corporate-team.model';
 import { UserKycRepository } from '@models/repository/user-kyc.repository';
+import { TrustpointlyModule } from '@src/integrations/trustpointly/trustpointly.module';
 // import { AdminKycController } from './admin.controller';
 
 @Module({
@@ -22,6 +23,7 @@ import { UserKycRepository } from '@models/repository/user-kyc.repository';
       { name: FacilityManager.name, schema: FacilityManagerSchema },
       { name: CorporateTeam.name, schema: CorporateTeamSchema },
     ]),
+    TrustpointlyModule,
   ],
   // controllers: [AdminKycController],
   providers: [KycService],

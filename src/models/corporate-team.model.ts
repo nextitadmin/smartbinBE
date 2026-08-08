@@ -31,7 +31,7 @@ export interface CorporateTeamAttributes {
   gender: Gender;
   jobTitle: string;
   address: string;
-  idDocumentNo: string;
+  NinNo: string;
   idDocument: string;
   deletedAt?: Date;
   createdAt?: Date;
@@ -82,7 +82,7 @@ export class CorporateTeam extends Document {
   address: string;
 
   @Prop({ type: SchemaTypes.String, required: false })
-  idDocumentNo: string;
+  NinNo: string;
 
   @Prop({ type: SchemaTypes.String, required: false })
   idDocument: string;

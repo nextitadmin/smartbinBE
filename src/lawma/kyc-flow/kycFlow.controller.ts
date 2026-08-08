@@ -1,6 +1,7 @@
-import { Controller, Get, Param, Patch, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
 import { KycFlowService } from './kycFlow.service';
 import { ApiTags, ApiQuery } from '@nestjs/swagger';
+import { RejectKycDto } from './dto/reject-kyc.dto';
 
 
 @ApiTags('Admin/Kyc Applications')
@@ -33,13 +34,21 @@ export class KycFlowController {
     return this.kycService.getApplicationDetails(applicationId);
   }
 
-  @Patch(':id')
+  @Patch(':id/approve')
   approveApplication(@Param('id') applicationId: string) {
     return this.kycService.approveApplication(applicationId);
   }
 
+  @Patch(':id/verify-nin')
+  verifyNin(@Param('id') applicationId: string) {
+    return this.kycService.verifyNin(applicationId);
+  }
+
   @Patch(':id/reject')
-  rejectApplication(@Param('id') applicationId: string) {
-    return this.kycService.rejectApplication(applicationId);
+  rejectApplication(
+    @Param('id') applicationId: string,
+    @Body() dto: RejectKycDto,
+  ) {
+    return this.kycService.rejectApplication(applicationId, dto?.reason);
   }
 }

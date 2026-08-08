@@ -44,9 +44,15 @@ export class KycFlowService {
 
   }
 
-  async rejectApplication(applicationId: string) {
+  async verifyNin(applicationId: string) {
 
-    return this.kycService.rejectApplication(applicationId);
+    return this.kycService.verifyApplicationNin(applicationId);
+
+  }
+
+  async rejectApplication(applicationId: string, reason?: string) {
+
+    return this.kycService.rejectApplication(applicationId, reason);
 
   }
 }

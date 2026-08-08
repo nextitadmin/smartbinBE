@@ -1,7 +1,15 @@
 import { Gender } from '@models/types';
 import { LawmaCustomerType } from '@models/users/resident.model';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Length,
+  Matches,
+} from 'class-validator';
 import {
   IsArray,
   ArrayNotEmpty,
@@ -39,7 +47,7 @@ class CompanyInformationDto {
 class BusinessRegistrationCertificateDto {
   @ApiProperty()
   @IsString({ message: 'ID document number must be a string' })
-  idDocumentNo: string;
+  NinNo: string;
 
   @ApiProperty()
   @IsString({ message: 'ID document must be a string' })
@@ -81,7 +89,7 @@ class AuthorizedSignatoryDto {
 
   @ApiProperty()
   @IsString({ message: 'ID document number must be a string' })
-  idDocumentNo: string;
+  NinNo: string;
 
   @ApiProperty()
   @IsString({ message: 'ID document must be a string' })
@@ -123,7 +131,8 @@ export class PersonalInfoDto {
   @IsEnum(Gender, { message: 'Gender must be Male or Female' })
   gender: Gender;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
+  @IsOptional()
   @IsString({ message: 'Lawma customer type must be a string' })
   lawmaCustomerType?: LawmaCustomerType;
 }
@@ -145,10 +154,17 @@ export class AgentInfoDto {
   @IsEnum(Gender, { message: 'Gender must be Male or Female' })
   gender: Gender;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString({ message: 'Lawma customer type must be a string' })
+  lawmaCustomerType?: LawmaCustomerType;
+
+  @ApiProperty({ description: '11-digit National Identification Number (NIN)' })
   @IsString({ message: 'NIN number must be a string' })
   @IsNotEmpty({ message: 'NIN number is required' })
-  idDocumentNo: string;
+  @Length(11, 11, { message: 'NIN must be exactly 11 digits' })
+  @Matches(/^\d{11}$/, { message: 'NIN must contain only digits' })
+  NinNo: string;
 
   @ApiProperty()
   @IsString({ message: 'ID document must be a string' })
@@ -169,6 +185,11 @@ export class Branches {
 }
 
 export class AgencyInformationDto {
+  @ApiProperty()
+  @IsString({ message: 'Agency name must be a string' })
+  @IsNotEmpty({ message: 'Agency name is required' })
+  agencyName: string;
+
   @ApiProperty()
   @IsString({ message: 'Business registration number must be a string' })
   businessRegistrationNumber: string;
@@ -197,10 +218,12 @@ export class AgencyDocumentDto {
 }
 
 export class IdVerificationDto {
-  @ApiProperty()
+  @ApiProperty({ description: '11-digit National Identification Number (NIN)' })
   @IsString({ message: 'NIN number must be a string' })
   @IsNotEmpty({ message: 'NIN number is required' })
-  idDocumentNo: string;
+  @Length(11, 11, { message: 'NIN must be exactly 11 digits' })
+  @Matches(/^\d{11}$/, { message: 'NIN must contain only digits' })
+  NinNo: string;
 
   @ApiProperty()
   @IsString({ message: 'ID document must be a string' })
@@ -358,7 +381,7 @@ export class TeamMemberDto {
   @ApiProperty()
   @IsString({ message: 'ID document number must be a string' })
   @IsNotEmpty({ message: 'ID document number is required' })
-  idDocumentNo: string;
+  NinNo: string;
 
   @ApiProperty()
   @IsString({ message: 'ID document must be a string' })
@@ -401,7 +424,7 @@ export class UpdateTeamMemberDto {
 
   @ApiProperty({ required: false })
   @IsString({ message: 'ID document number must be a string' })
-  idDocumentNo?: string;
+  NinNo?: string;
 
   @ApiProperty({ required: false })
   @IsString({ message: 'ID document must be a string' })
