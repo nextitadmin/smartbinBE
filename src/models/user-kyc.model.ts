@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, PopulatedDoc, SchemaTypes, Types } from 'mongoose';
-import { UserRole } from './types';
+import { Gender, UserRole } from './types';
 import { Lga, LGAAttributes } from './lgas.model';
 
 export enum IdVerificationStatus {
@@ -40,7 +40,9 @@ export interface UserKycAttributes {
   userId: Types.ObjectId;
   userType: UserRole;
   lawmaCustomerType?: string;
-  idDocumentNo?: string;
+  nationality?: string;
+  gender?: Gender;
+  NinNo?: string;
   idDocument?: string;
   buildingType?: string;
   houseNumber?: string;
@@ -60,8 +62,16 @@ export interface UserKycAttributes {
   addressVerificationStatus?: AddressVerificationStatus;
   agencyInformationStatus?: AgencyInformationStatus;
   signatoryVerificationStatus?: SignatoryVerificationStatus;
+  agencyName?: string;
+  businessName?: string;
   businessRegistrationNumber?: string;
+  businessEmailAddress?: string;
+  businessPhoneNumber?: string;
   businessSector?: string;
+  agencyCertificateDocument?: string;
+  ninVerificationReference?: string;
+  ninVerificationProviderStatus?: string;
+  rejectionReason?: string;
   hasCompletedKyc?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
@@ -92,7 +102,13 @@ export class UserKyc extends Document {
   lawmaCustomerType: string;
 
   @Prop({ type: SchemaTypes.String, required: false })
-  idDocumentNo: string;
+  nationality: string;
+
+  @Prop({ type: SchemaTypes.String, enum: Object.values(Gender), required: false })
+  gender: Gender;
+
+  @Prop({ type: SchemaTypes.String, required: false })
+  NinNo: string;
 
   @Prop({ type: SchemaTypes.String, required: false })
   idDocument: string;
@@ -177,10 +193,34 @@ export class UserKyc extends Document {
   signatoryVerificationStatus: SignatoryVerificationStatus;
 
   @Prop({ type: SchemaTypes.String, required: false })
+  agencyName: string;
+
+  @Prop({ type: SchemaTypes.String, required: false })
+  businessName: string;
+
+  @Prop({ type: SchemaTypes.String, required: false })
   businessRegistrationNumber: string;
 
   @Prop({ type: SchemaTypes.String, required: false })
+  businessEmailAddress: string;
+
+  @Prop({ type: SchemaTypes.String, required: false })
+  businessPhoneNumber: string;
+
+  @Prop({ type: SchemaTypes.String, required: false })
   businessSector: string;
+
+  @Prop({ type: SchemaTypes.String, required: false })
+  agencyCertificateDocument: string;
+
+  @Prop({ type: SchemaTypes.String, required: false })
+  ninVerificationReference: string;
+
+  @Prop({ type: SchemaTypes.String, required: false })
+  ninVerificationProviderStatus: string;
+
+  @Prop({ type: SchemaTypes.String, required: false })
+  rejectionReason: string;
 
   @Prop({ type: SchemaTypes.Boolean, default: false })
   hasCompletedKyc: boolean;

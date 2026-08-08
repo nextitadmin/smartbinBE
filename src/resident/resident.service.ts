@@ -283,7 +283,7 @@ export class ResidentService {
       // localGovermentArea: userKyc?.localGovernment || null,
       buildingType: userKyc?.buildingType || null,
       idDocument: userKyc?.idDocument || null,
-      idDocumentNo: userKyc?.idDocumentNo || null,
+      NinNo: userKyc?.NinNo || null,
       hasCompletedKyc: userKyc?.hasCompletedKyc || false,
     };
     return {

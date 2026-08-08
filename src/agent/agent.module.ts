@@ -38,6 +38,7 @@ import { AgentSmartbinController } from './bin-management/bin-management.control
 import { AgentSmartbinService } from './bin-management/bin-management.service';
 import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
 import { Lga,LgaSchema } from '@models/lgas.model';
+import { TrustpointlyModule } from '@src/integrations/trustpointly/trustpointly.module';
 
 @Module({
   imports: [
@@ -91,6 +92,7 @@ import { Lga,LgaSchema } from '@models/lgas.model';
     forwardRef(() => TransactionModule),
     forwardRef(() => SmartBinModule),
     ManagementsModule,
+    TrustpointlyModule,
   ],
   providers: [
     AgentService,

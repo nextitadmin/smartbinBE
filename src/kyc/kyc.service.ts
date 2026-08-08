@@ -25,6 +25,7 @@ import {
   UpdateTeamMemberDto,
 } from './dto/kyc.dto';
 import { CorporateTeam } from '@models/corporate-team.model';
+import { TrustpointlyService } from '@src/integrations/trustpointly/trustpointly.service';
 
 @Injectable()
 export class KycService {
@@ -35,20 +36,69 @@ export class KycService {
     @InjectModel(UserKyc.name) private readonly userKycModel: Model<UserKyc>,
     @InjectModel(CorporateTeam.name)
     private readonly corporateTeamModel: Model<CorporateTeam>,
+    private readonly trustpointlyService: TrustpointlyService,
   ) {}
+
+  // Run the NIN check and return only the non-sensitive fields 
+   
+  private async runNinCheck(nin?: string): Promise<{
+    ninVerificationReference?: string;
+    ninVerificationProviderStatus?: string;
+  }> {
+    if (!nin) return {};
+
+    const result = await this.trustpointlyService.verifyNin(nin);
+
+    return {
+      ninVerificationReference: result.reference,
+      ninVerificationProviderStatus: result.providerStatus ?? result.status,
+    };
+  }
+
+  //Normalize an AddressVerificationDto 
+  private mapAddress(
+    address?: AddressVerificationDto,
+  ): Record<string, any> {
+    if (!address) return {};
+
+    const { localGovernment, ...rest } = address;
+
+    return {
+      ...rest,
+      ...(localGovernment
+        ? { lga: new Types.ObjectId(localGovernment) }
+        : {}),
+    };
+  }
 
   async createAgentKyc(dto: {
     userId: string;
     accountType: UserRole;
     applicationData: CreateAgentKycDto;
   }) {
+    const { personalInformation, agencyInformation, addressDocument } =
+      dto.applicationData;
+
+    const ninCheck = await this.runNinCheck(personalInformation?.NinNo);
+
     const userKyc = await this.userKycModel.findOneAndUpdate(
       { userId: new Types.ObjectId(dto.userId), userType: dto.accountType },
       {
         $set: {
-          ...dto.applicationData.personalInformation,
-          ...dto.applicationData.agencyInformation,
-          ...dto.applicationData.addressDocument,
+          nationality: personalInformation?.nationality,
+          gender: personalInformation?.gender,
+          lawmaCustomerType: personalInformation?.lawmaCustomerType,
+          NinNo: personalInformation?.NinNo,
+          idDocument: personalInformation?.idDocument,
+          agencyName: agencyInformation?.agencyName,
+          businessRegistrationNumber:
+            agencyInformation?.businessRegistrationNumber,
+          businessEmailAddress: agencyInformation?.businessEmailAddress,
+          businessPhoneNumber: agencyInformation?.businessPhoneNumber,
+          branches: agencyInformation?.branches,
+          agencyCertificateDocument:
+            addressDocument?.agencyCertificateDocument,
+          ...ninCheck,
           hasSubmittedPersonalInformation: true,
           hasSubmittedIdentity: true,
           hasSubmittedAgencyDocument: true,
@@ -75,15 +125,23 @@ export class KycService {
     accountType: UserRole;
     applicationData: CreateResidentKycDto | CreateFacilityManagerKycDto;
   }) {
+    const ninCheck = await this.runNinCheck(
+      dto.applicationData.identityInformation?.NinNo,
+    );
+
     const userKyc = await this.userKycModel.findOneAndUpdate(
       { userId: new Types.ObjectId(dto.userId), userType: dto.accountType },
       {
         $set: {
           ...dto.applicationData.personalInformation,
           ...dto.applicationData.identityInformation,
+          ...this.mapAddress(dto.applicationData.addressInformation),
+          ...ninCheck,
           hasSubmittedPersonalInformation: true,
           hasSubmittedIdentity: true,
+          hasSubmittedAddress: true,
           hasCompletedKyc: true,
+          rejectionReason: null,
           identityVerificationStatus: IdVerificationStatus.SUBMITTED,
           addressVerificationStatus: AddressVerificationStatus.SUBMITTED,
         },
@@ -104,6 +162,9 @@ export class KycService {
     accountType: UserRole;
     applicationData: CreateCorporateKycDto;
   }) {
+    const { companyInformation, businessRegistrationCertificate } =
+      dto.applicationData;
+
     const signatoryDocs = await this.corporateTeamModel.insertMany(
       dto.applicationData.authorizedSignatories.map((signatory) => ({
         ...signatory,
@@ -113,13 +174,25 @@ export class KycService {
     );
     const signatoryIds = signatoryDocs.map((s) => s._id);
 
+    const ninCheck = await this.runNinCheck(
+      businessRegistrationCertificate?.NinNo,
+    );
+
     const userKyc = await this.userKycModel.findOneAndUpdate(
       { userId: new Types.ObjectId(dto.userId), userType: dto.accountType },
       {
         $set: {
-          ...dto.applicationData.companyInformation,
-          ...dto.applicationData.businessRegistrationCertificate,
+          businessName: companyInformation?.businessName,
+          businessRegistrationNumber:
+            companyInformation?.businessRegistrationNumber,
+          businessEmailAddress: companyInformation?.email,
+          businessPhoneNumber: companyInformation?.phoneNumber,
+          businessSector: companyInformation?.businessSector,
+          address: companyInformation?.address,
+          NinNo: businessRegistrationCertificate?.NinNo,
+          idDocument: businessRegistrationCertificate?.idDocument,
           signatories: signatoryIds,
+          ...ninCheck,
           hasSubmittedPersonalInformation: true,
           hasSubmittedIdentity: true,
           hasSubmittedSignatories: true,
@@ -181,11 +254,14 @@ export class KycService {
     accountType: UserRole;
     applicationData: IdVerificationDto;
   }) {
+    const ninCheck = await this.runNinCheck(dto.applicationData?.NinNo);
+
     const userKyc = await this.userKycModel.findOneAndUpdate(
       { userId: new Types.ObjectId(dto.userId), userType: dto.accountType },
       {
         $set: {
           ...dto.applicationData,
+          ...ninCheck,
           hasSubmittedIdentity: true,
           identityVerificationStatus: IdVerificationStatus.SUBMITTED,
         },
@@ -208,7 +284,7 @@ export class KycService {
       { userId: new Types.ObjectId(dto.userId), userType: dto.accountType },
       {
         $set: {
-          ...dto.applicationData,
+          ...this.mapAddress(dto.applicationData),
           hasSubmittedAddress: true,
           addressVerificationStatus: AddressVerificationStatus.SUBMITTED,
         },
@@ -237,6 +313,7 @@ export class KycService {
       signatoryVerificationStatus: userKyc.signatoryVerificationStatus,
       hasSubmittedSignatories: userKyc.hasSubmittedSignatories,
       hasSubmittedIdentity: userKyc.hasSubmittedIdentity,
+      rejectionReason: userKyc.rejectionReason ?? null,
     };
   }
   // For Resident and Facilty Manager
@@ -252,6 +329,7 @@ export class KycService {
       hasSubmittedPersonalInformation: userKyc.hasSubmittedPersonalInformation,
       hasSubmittedAddress: userKyc.hasSubmittedAddress,
       hasSubmittedIdentity: userKyc.hasSubmittedIdentity,
+      rejectionReason: userKyc.rejectionReason ?? null,
     };
   }
 
@@ -267,6 +345,7 @@ export class KycService {
       hasSubmittedPersonalInformation: userKyc.hasSubmittedPersonalInformation,
       hasSubmittedAddress: userKyc.hasSubmittedAddress,
       hasSubmittedIdentity: userKyc.hasSubmittedIdentity,
+      rejectionReason: userKyc.rejectionReason ?? null,
     };
   }
 
@@ -397,18 +476,21 @@ export class KycService {
 
     const statusType = status === "pending" ? IdVerificationStatus.SUBMITTED : status
 
+    const filter = { identityVerificationStatus: statusType };
+
     const [kycRecords, total] = await Promise.all([
       this.userKycModel
-        .find({identityVerificationStatus: statusType})
+        .find(filter)
         .skip(skip)
         .limit(limit)
         .populate({
           path: 'userId',
           select: '-password -createdAt -updatedAt -__v',
         })
+        .populate('lga')
         .lean(),
 
-      this.userKycModel.countDocuments(),
+      this.userKycModel.countDocuments(filter),
     ]);
 
     return {
@@ -432,6 +514,7 @@ export class KycService {
         path: 'userId',
         select: '-password -createdAt -updatedAt -__v',
       })
+      .populate('lga')
       .lean();
 
     if (!application) {
@@ -452,6 +535,44 @@ export class KycService {
         signatories,
       },
       message: 'Application details fetched successfully',
+    };
+  }
+
+  //NIN-Verification
+  async verifyApplicationNin(applicationId: string) {
+    const application = await this.userKycModel.findById(applicationId).lean();
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    if (!application.NinNo) {
+      throw new NotFoundException('No NIN on file for this application');
+    }
+
+    const result = await this.trustpointlyService.verifyNin(
+      application.NinNo,
+    );
+
+    await this.userKycModel.findByIdAndUpdate(
+      applicationId,
+      {
+        $set: {
+          ninVerificationReference: result.reference,
+          ninVerificationProviderStatus:
+            result.providerStatus ?? result.status,
+        },
+      },
+      { new: true },
+    );
+
+    return {
+      data: {
+        status: result.status,
+        reference: result.reference,
+        providerStatus: result.providerStatus ?? result.status,
+        identity: result.identity ?? null,
+      },
+      message: 'NIN verification completed',
     };
   }
 
@@ -487,6 +608,8 @@ export class KycService {
         throw new NotFoundException('Unknown user type');
     }
 
+    update.rejectionReason = null;
+
     await this.userKycModel.findByIdAndUpdate(
       applicationId,
       { $set: update },
@@ -495,7 +618,7 @@ export class KycService {
     return { data: null, message: 'Kyc application approved' };
   }
 
-  async rejectApplication(applicationId: string) {
+  async rejectApplication(applicationId: string, reason?: string) {
     const application = await this.userKycModel.findById(applicationId).lean();
     if (!application) {
       throw new NotFoundException('Application not found');
@@ -525,6 +648,10 @@ export class KycService {
         break;
       default:
         throw new NotFoundException('Unknown user type');
+    }
+
+    if (reason !== undefined) {
+      update.rejectionReason = reason;
     }
 
     await this.userKycModel.findByIdAndUpdate(

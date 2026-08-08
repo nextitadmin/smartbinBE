@@ -309,7 +309,7 @@ export class CorporateService {
       businessRegistrationNumber: userKyc?.businessRegistrationNumber || null,
       businessSector: userKyc?.businessSector || null,
       idDocument: userKyc?.idDocument || null,
-      idDocumentNo: userKyc?.idDocumentNo || null,
+      NinNo: userKyc?.NinNo || null,
       hasCompletedKyc: userKyc?.hasCompletedKyc || false,
     };
     return {
