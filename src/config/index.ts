@@ -30,14 +30,6 @@ export interface ConfigAttributes {
     smtp_password: string;
   };
 
-  alatpay: {
-    publicKey: string;
-    secretKey: string;
-    baseUrl: string;
-    businessId: string;
-    apiKey: string;
-  };
-
   kyc: {
     baseUrl: string;
     testApiKey: string;
@@ -88,13 +80,6 @@ const config = (): ConfigAttributes => ({
     smtp_port: process.env.MAIL_SMTP_PORT,
   },
 
-  alatpay: {
-    publicKey: process.env.ALAT_CLIENT_ID,
-    secretKey: process.env.ALAT_CLIENT_SECRET,
-    baseUrl: process.env.ALAT_BASE_URL,
-    businessId: process.env.ALAT_BUSINESS_ID,
-    apiKey: process.env.ALAT_API_KEY,
-  },
   kyc: {
     baseUrl: process.env.KYC_BASE_URL,
     testApiKey: process.env.KYC_TEST_API_KEY,
@@ -113,7 +98,6 @@ const config = (): ConfigAttributes => ({
     secretKey: process.env.PAY4IT_SECRET_KEY,
   },
   CACHE_URL: process.env.CACHE_URL,
-  REDIS_URL: process.env.REDIS_URL,
 });
 
 const schema = Joi.object<Record<string, string>>({
@@ -140,20 +124,15 @@ const schema = Joi.object<Record<string, string>>({
   MAIL_SMTP_HOST: Joi.string().required(),
   MAIL_SMTP_PORT: Joi.string().required(),
 
-  ALAT_CLIENT_ID: Joi.string().required(),
-  ALAT_CLIENT_SECRET: Joi.string().required(),
-  ALAT_BASE_URL: Joi.string().uri().required(),
-  ALAT_BUSINESS_ID: Joi.string().required(),
-  ALAT_API_KEY: Joi.string().required(),
-
   KYC_BASE_URL: Joi.string().uri().required(),
   KYC_TEST_API_KEY: Joi.string().required(),
   KYC_LIVE_API_KEY: Joi.string().allow('').optional(),
 
   FRONTEND_URL: Joi.string().required(),
 
-  CACHE_URL: Joi.string().uri({ scheme: ['redis', 'rediss'] }).optional(),
-  REDIS_URL: Joi.string().uri({ scheme: ['redis', 'rediss'] }).optional(),
+  CACHE_URL: Joi.string()
+    .uri({ scheme: ['redis', 'rediss'] })
+    .optional(),
 });
 
 export const configModuleOpts: ConfigModuleOptions = {
