@@ -138,11 +138,11 @@ const schema = Joi.object<Record<string, string>>({
   MAIL_SMTP_HOST: Joi.string().required(),
   MAIL_SMTP_PORT: Joi.string().required(),
 
-  ALAT_CLIENT_ID: Joi.string().required(),
+  /* ALAT_CLIENT_ID: Joi.string().required(),
   ALAT_CLIENT_SECRET: Joi.string().required(),
   ALAT_BASE_URL: Joi.string().uri().required(),
   ALAT_BUSINESS_ID: Joi.string().required(),
-  ALAT_API_KEY: Joi.string().required(),
+  ALAT_API_KEY: Joi.string().required(), */
 
   KYC_BASE_URL: Joi.string().uri().required(),
   KYC_API_KEY: Joi.string().required(),
