@@ -48,7 +48,6 @@ export interface ConfigAttributes {
     secretKey: string;
   };
   CACHE_URL?: string;
-  REDIS_URL?: string;
 }
 
 const config = (): ConfigAttributes => ({
@@ -95,7 +94,6 @@ const config = (): ConfigAttributes => ({
     secretKey: process.env.PAY4IT_SECRET_KEY,
   },
   CACHE_URL: process.env.CACHE_URL,
-  REDIS_URL: process.env.REDIS_URL,
 });
 
 const schema = Joi.object<Record<string, string>>({
