@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { mongodbConfigOptions } from './config/mongo.config';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ConfigAttributes, configModuleOpts } from './config';
+import { ConfigModule } from '@nestjs/config';
+import { configModuleOpts } from './config';
 import { NotificationModule } from './notification/notification.module';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConfigOpts } from './config/jwt.config';
@@ -38,18 +38,16 @@ import { PickupModule } from './waste-management/pickup/pickup.module';
 import { UtilityModule } from './utility/utility.module';
 import { AuthGuard } from '@common/guards/actor.guard';
 import { SupportModule } from './support/support.module';
-import { WalletController } from './wallet/wallet.controller';
 import { ReportModule } from './report/report.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { WasteManagementModule } from './waste-management/waste-management.module';
 import { TeamModule } from './team/team.module';
-// import { UsersModule } from './users/users.module';
-// import { AppService } from './app.service';
-// import { SuperAdminController } from './super-admin/super-admin.controller';
 import { SuperAdminModule } from './super-admin/super-admin.module';
 import { LawmaModule } from './lawma/lawma.module';
 import { RbacModule } from './rbac/rbac.module';
 import { QueuesModule } from './queues/queues.module';
+import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -85,9 +83,13 @@ import { QueuesModule } from './queues/queues.module';
     SuperAdminModule,
     LawmaModule,
     RbacModule,
+    MongooseModule.forFeature([
+      { name: SmartBin.name, schema: SmartBinSchema },
+    ]),
   ],
   controllers: [AppController],
   providers: [
+    AppService,
     {
       provide: APP_GUARD,
       useValue: AgentAuthGuard,

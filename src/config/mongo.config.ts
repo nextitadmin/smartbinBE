@@ -6,5 +6,14 @@ export const mongodbConfigOptions: MongooseModuleAsyncOptions = {
   inject: [ConfigService],
   useFactory: async (configService: ConfigService) => ({
     uri: configService.get<string>('DB_URI'),
+    dbName: configService.get<string>('DB_NAME') ?? 'smartbin',
+    onConnectionCreate: (connection) => {
+      connection.on('error', (error) => {
+        console.error('MongoDB connection error', error);
+      });
+      connection.on('connected', () => {
+        console.log('MongoDB connected', connection.db.databaseName);
+      });
+    },
   }),
 };
