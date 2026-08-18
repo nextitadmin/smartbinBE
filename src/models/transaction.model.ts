@@ -3,6 +3,7 @@ import { Document, SchemaTypes, Types } from 'mongoose';
 
 import { UserRole } from './types';
 import { Wallet } from './wallet.model';
+import { nanoid } from 'node_modules/nanoid/index.cjs';
 
 export enum TransactionStatus {
   Abandoned = 'abandoned',
@@ -18,7 +19,7 @@ export enum TransactionAction {
 }
 
 export enum PaymentMethod {
-  AlatByWema = 'Alat',
+  PaymentGateway = 'Payment Gateway',
   Wallet = 'wallet',
 }
 
@@ -46,6 +47,7 @@ export interface TransactionMetadata {
 
 export interface TransactionAttributes {
   userId: Types.ObjectId;
+  transactionId?: string;
   userType: UserRole;
   walletId?: Types.ObjectId;
   amount: number;
@@ -67,6 +69,13 @@ export class Transaction implements TransactionAttributes {
     required: true,
   })
   userId: Types.ObjectId;
+
+  @Prop({
+    type: String,
+    required: false,
+    default: nanoid(16).toUpperCase(),
+  })
+  transactionId?: string;
 
   @Prop({
     type: SchemaTypes.ObjectId,

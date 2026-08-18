@@ -21,7 +21,9 @@ export class TopUpWalletDto {
   @ApiProperty({ minimum: 100, maximum: 1000000 })
   @IsOptional()
   @IsNumber()
-  @Min(5000)
+  @Min(5000, {
+    message: 'Minimum amount is NGN 50.00',
+  })
   amount: number;
 
   @ApiProperty({

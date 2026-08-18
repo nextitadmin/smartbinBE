@@ -1,5 +1,6 @@
 import { generateRandomChars } from '@common/utils';
 import {
+  PaymentMethod,
   PostAction,
   ServiceType,
   Transaction,
@@ -58,11 +59,13 @@ export class TransactionService {
     service,
     reference,
     metadata,
+    paymentMethod,
   }: {
     userId: string;
     userType: UserRole;
     amount: number;
     service: ServiceType;
+    paymentMethod?: PaymentMethod;
     walletId?: string;
     reference?: string;
     metadata?: TransactionMetadata & Record<string, any>;
@@ -96,6 +99,7 @@ export class TransactionService {
       metadata: metadata || {
         postAction: PostAction.None,
       },
+      paymentMethod,
     });
 
     return {

@@ -17,6 +17,7 @@ import {
 } from './dtos/wallet.dto';
 import * as crypto from 'crypto';
 import {
+  PaymentMethod,
   PostAction,
   ServiceType,
   Transaction,
@@ -255,6 +256,7 @@ export class WalletService {
       amount: dto.amount,
       reference: transactionReference,
       service: ServiceType.WalletTopUp,
+      paymentMethod: PaymentMethod.PaymentGateway,
       walletId: String(wallet._id),
       metadata: {
         description: 'Wallet top up',
