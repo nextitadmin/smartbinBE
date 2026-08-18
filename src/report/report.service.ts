@@ -118,7 +118,7 @@ export class ReportService {
           from: moment(dto.startDate).format('DD/MM'),
           to: moment(dto.endDate).format('DD/MM'),
         },
-        totalRecords: data.length,
+        totalRecords: data?.length || 0,
       },
     };
   }

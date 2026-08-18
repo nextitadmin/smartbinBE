@@ -47,7 +47,7 @@ export class WalletController {
   }
 
   @Post('charge')
-  async chargeCorporateWallet(
+  async chargeWallet(
     @AuthenticatedUser() user: AuthUser,
     @Body() dto: TopUpWalletDto,
   ) {

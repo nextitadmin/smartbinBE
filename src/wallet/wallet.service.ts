@@ -129,16 +129,15 @@ export class WalletService {
     if (!wallet) {
       throw new NotFoundException('No wallet found for this user');
     }
-    let transaction;
 
+    let transaction;
     if (reference) {
       const existingTransaction =
         await this.transactionService.getTransactionByReference(reference);
       if (existingTransaction.status === TransactionStatus.Successful) {
-        throw new BadRequestException('Transaction already completed');
+        throw new UnprocessableEntityException('Transaction already completed');
       }
       amount = existingTransaction.amount;
-      transaction = existingTransaction;
     }
 
     if (wallet.available_balance < amount) {
@@ -150,12 +149,6 @@ export class WalletService {
     wallet.available_balance -= amount;
     wallet.ledger_balance -= amount;
     await wallet.save();
-
-    await this.transactionService.updateTransaction({
-      reference,
-      walletId: wallet._id,
-      status: TransactionStatus.Successful,
-    });
 
     if (!reference) {
       const newTransaction = await this.transactionService.initiateTransaction({
@@ -171,10 +164,13 @@ export class WalletService {
         throw new BadRequestException(newTransaction.message);
       }
 
-      reference = transaction.reference;
-      return (transaction = newTransaction.data);
+      transaction = await this.transactionService.updateTransaction({
+        reference: newTransaction.data.reference,
+        walletId: wallet._id,
+        status: TransactionStatus.Successful,
+      });
     } else {
-      await this.transactionService.updateTransaction({
+      transaction = await this.transactionService.updateTransaction({
         reference,
         walletId: wallet._id,
         status: TransactionStatus.Successful,
@@ -211,8 +207,9 @@ export class WalletService {
       //   isRead: false,
       // }),
     );
-
-    return reference;
+    return {
+      reference: reference || transaction.transactionReference,
+    };
   }
 
   async getWallet(user: AuthUser) {

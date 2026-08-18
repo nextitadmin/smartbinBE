@@ -250,6 +250,10 @@ export class TransactionService {
           status: param.status,
         },
       },
+      {
+        new: true,
+        lean: true,
+      },
     );
   }
 

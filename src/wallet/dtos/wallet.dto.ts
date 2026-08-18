@@ -1,4 +1,11 @@
-import { IsNumber, Min, Max, IsString, IsOptional } from 'class-validator';
+import {
+  IsNumber,
+  Min,
+  Max,
+  IsString,
+  IsOptional,
+  IsNotEmpty,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { WalletStatus } from '@models/wallet.model';
 
@@ -20,8 +27,9 @@ export class TopUpWalletDto {
   @ApiProperty({
     required: false,
   })
-  @IsString()
   @IsOptional()
+  @IsString()
+  @IsNotEmpty({ message: 'Reference is required' })
   reference: string;
 }
 
