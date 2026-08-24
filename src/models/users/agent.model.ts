@@ -158,7 +158,7 @@ export type AgentDocument = Agent & Document;
 export const AgentSchema = SchemaFactory.createForClass(Agent);
 
 export const defaultAgentFields =
-  'payerId agencyName addresses firstName lastName email role status';
+  'payerId agencyName addresses firstName lastName phoneNumber profilePicture email role statu ';
 
 AgentSchema.virtual('residents', {
   ref: 'Resident',
