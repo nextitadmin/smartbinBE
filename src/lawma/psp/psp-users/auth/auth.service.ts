@@ -126,8 +126,13 @@ export class PspAuthService {
       role: pspUser.role,
       ipAddress: req.headers['x-forwarded-for'] as string,
       userAgent: req.headers['user-agent'],
+      administrator: {
+        id: String(pspUser._id),
+        name: pspUser.name,
+        email: pspUser.email,
+        role: pspUser.role,
+      },
     };
-
     this.ee.emit(
       AuditLogEvents.UserActivity,
       new LogActionEvent({
@@ -175,7 +180,7 @@ export class PspAuthService {
   async verifyPasswordResetCode(body: PspVerifyResetCodeDto) {
     const { code } = body;
     const pspId = await this.cacheService.get(
-      CacheKeys.PspResetPasswordCode(code),
+      CacheKeys.PspResetPasswordCode(String(code)),
     );
     const psp = await this.pspUserModel.findById(pspId);
 

@@ -21,12 +21,12 @@ export class TeamService {
   constructor(
     @InjectModel(Administrator.name)
     private readonly teamMemberModel: Model<AdministratorAttributes>,
-  ) { }
+  ) {}
 
   async getTeams() {
     const teamsQuery = {
-      role: { $ne: AdministratorRole.SuperAdmin },
-      deleted_at: null,
+      role: { $ne: AdministratorRole.TeamMember },
+      // deleted_at: null,
     };
     const totalDocument = await this.teamMemberModel.countDocuments(teamsQuery);
     const pagingMeta: Paging = {
@@ -61,7 +61,8 @@ export class TeamService {
       password: getHashedPassword('password'),
     });
 
-    const { password, createdAt, updatedAt, deleted_at, ...memberData } = newTeamMember.toObject();
+    const { password, createdAt, updatedAt, deleted_at, ...memberData } =
+      newTeamMember.toObject();
 
     return memberData;
   }

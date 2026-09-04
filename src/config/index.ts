@@ -36,7 +36,7 @@ export interface ConfigAttributes {
   };
 
   frontendUrl: string;
-
+  adminFrontendUrl: string;
   cloudinary: {
     cloudName: string;
     apiKey: string;
@@ -82,7 +82,7 @@ const config = (): ConfigAttributes => ({
     apiKey: process.env.KYC_API_KEY,
   },
   frontendUrl: process.env.FRONTEND_URL,
-
+  adminFrontendUrl: process.env.ADMIN_FRONTEND_URL,
   cloudinary: {
     apiKey: process.env.CLOUDINARY_API_KEY,
     apiSecret: process.env.CLOUDINARY_API_SECRET,
@@ -124,6 +124,7 @@ const schema = Joi.object<Record<string, string>>({
   KYC_API_KEY: Joi.string().default('1234567890'),
 
   FRONTEND_URL: Joi.string().required(),
+  ADMIN_FRONTEND_URL: Joi.string().required(),
 
   CACHE_URL: Joi.string()
     .uri({ scheme: ['redis', 'rediss'] })

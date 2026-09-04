@@ -1,6 +1,6 @@
 import { PSPUsers, PspUsersDocument } from '@models/psp-users.model';
 import { PSP, PspDocument } from '@models/psp.model';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { CreatePspDTO, CreatePspMembersDTO } from './dto/psp.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -18,15 +18,17 @@ import {
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { CacheKeys } from '@src/shared/constants';
-import { generateRandomChars } from '@common/utils';
+import { generateRandomChars, getHashedPassword } from '@common/utils';
 import { ConfigService } from '@nestjs/config';
 import { ConfigAttributes } from '@src/config';
 import { RbacService } from '@src/rbac/rbac.service';
 import { AddRoleDto } from '@src/rbac/dto/rbac.dto';
 
 @Injectable()
-export class PspService {
-  protected clientUrl: ConfigAttributes['frontendUrl'];
+export class PspService implements OnModuleInit {
+  async onModuleInit() {
+    await this.createDefaultPSP();
+  }
 
   constructor(
     @InjectModel(PSP.name)
@@ -37,9 +39,47 @@ export class PspService {
     private readonly ee: EventEmitter2,
     @Inject(CACHE_MANAGER) private cacheService: Cache,
     private readonly configService: ConfigService<ConfigAttributes>,
-    private readonly rbacService: RbacService
-  ) {
-    this.clientUrl = this.configService.get<string>('frontendUrl');
+    private readonly rbacService: RbacService,
+  ) {}
+
+  async createDefaultPSP() {
+    const defaultPSP = await this.pspUser.findOne({
+      email: 'psp@lawma.co',
+    });
+
+    if (defaultPSP) {
+      return;
+    }
+
+    const psp = await this.psp.create({
+      company_name: 'Default PSP',
+      administrator_name: 'PSP Admin',
+      administrator_email: 'psp@lawma.co',
+      administrator_phone: '1234567890',
+      status: 'active',
+      role: 'administrator',
+      lga_id: '6a3017fd112f4598d9b77696',
+      company_address: 'Default PSP Address',
+      company_logo: 'Default PSP Logo',
+      lga_address: 'Default PSP LGA Address',
+    });
+
+    await this.pspUser.create({
+      psp_id: psp._id,
+      psp_details: {
+        _id: psp._id,
+        company_name: psp.company_name,
+      },
+      name: psp.administrator_name,
+      email: psp.administrator_email,
+      password: 'password',
+      status: 'active',
+      role: 'administrator',
+      phone_number: psp.administrator_phone,
+    });
+
+    console.log('psp', psp);
+    return psp;
   }
 
   async createPsp(psp: CreatePspDTO, admin: AdminUser) {
@@ -52,24 +92,25 @@ export class PspService {
       psp_id: pspData._id,
       psp_details: {
         _id: pspData._id,
-        company_name: pspData.company_name
+        company_name: pspData.company_name,
       },
       name: pspData.administrator_name,
       email: pspData.administrator_email,
       password: password,
       phone_number: pspData.administrator_phone,
-      status: "active",
-      role: "administrator",
-    })
+      status: 'active',
+      role: 'administrator',
+    });
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
-    console.log("password reset code", resetCode);
-    console.log("password", password);
     await this.cacheService.set(
       CacheKeys.PspResetPasswordCode(String(resetCode)),
       String(pspData._id),
     );
 
-    const resetLink = `${this.clientUrl}/psp-admin/resetpassword/${resetCode}`;
+    const clientUrl = this.configService.get<string>('frontendUrl', {
+      infer: true,
+    });
+    const resetLink = `${clientUrl}/psp-admin/resetpassword/${resetCode}`;
 
     this.ee.emit(
       AuditLogEvents.UserActivity,
@@ -97,9 +138,8 @@ export class PspService {
       email: pspData.administrator_email,
       name: pspData.company_name,
       id: pspData._id,
-      password: password
+      password: password,
     };
-
   }
 
   async getPspLgas() {
@@ -116,7 +156,7 @@ export class PspService {
       ...pspMembers,
       psp_details: psp,
       psp_id: pspMembers.psp_id,
-      password: password
+      password: password,
     });
   }
 
@@ -138,13 +178,17 @@ export class PspService {
       },
     );
 
-    const userAction = status === "inactive" ? LOGTYPE.PspDeactivated : LOGTYPE.PspActivated
+    const userAction =
+      status === 'inactive' ? LOGTYPE.PspDeactivated : LOGTYPE.PspActivated;
 
-    this.ee.emit(AuditLogEvents.UserActivity, new LogActionEvent({
-      action: userAction,
-      administrator: admin,
-      userType: UserType.Admin
-    }))
+    this.ee.emit(
+      AuditLogEvents.UserActivity,
+      new LogActionEvent({
+        action: userAction,
+        administrator: admin,
+        userType: UserType.Admin,
+      }),
+    );
 
     return null;
   }
