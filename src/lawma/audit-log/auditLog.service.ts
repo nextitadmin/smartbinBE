@@ -18,21 +18,27 @@ export class AuditLogService {
   async logAction(event: LogActionEvent) {
     const { administrator, action, userType } = event.data;
 
-    const admin = await this.adminModel.findById(administrator.id).select('_id');
-
     return this.auditLogModel.create({
-      user:  admin._id,
+      user: administrator.id,
       name: administrator.name,
       email: administrator.email,
       action: action,
       platform: administrator.userAgent,
       ipAddress: administrator.ipAddress,
-      userType: userType
+      userType: userType,
     });
   }
 
   async getAllLogs(queryObj: AuditLogQueryDto) {
-    const { search, startdate: startDate, enddate: endDate, activityType, role, page = 1, limit = 10 } = queryObj;
+    const {
+      search,
+      startdate: startDate,
+      enddate: endDate,
+      activityType,
+      role,
+      page = 1,
+      limit = 10,
+    } = queryObj;
     const query: any = {};
     // Search by action, platform, or ipAddress
     if (search) {
@@ -50,11 +56,11 @@ export class AuditLogService {
       if (endDate) query['timestamp']['$lte'] = new Date(endDate);
     }
 
-    if(activityType){
+    if (activityType) {
       query['action'] = activityType;
     }
-    if(role){
-      query['role'] = role; 
+    if (role) {
+      query['role'] = role;
     }
     const skip = (Number(page) - 1) * Number(limit);
     return this.auditLogModel
