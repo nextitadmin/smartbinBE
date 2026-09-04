@@ -124,7 +124,9 @@ const schema = Joi.object<Record<string, string>>({
   KYC_API_KEY: Joi.string().default('1234567890'),
 
   FRONTEND_URL: Joi.string().required(),
-  ADMIN_FRONTEND_URL: Joi.string().required(),
+  ADMIN_FRONTEND_URL: Joi.string().default(
+    'https://smartbin-admin-fe.next-itservices.com',
+  ),
 
   CACHE_URL: Joi.string()
     .uri({ scheme: ['redis', 'rediss'] })
