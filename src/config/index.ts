@@ -103,6 +103,7 @@ const schema = Joi.object<Record<string, string>>({
   DISABLE_REQUEST_LOGGING: Joi.string().allow('0', '1').default('0'),
 
   DB_URI: Joi.string().required(),
+  DB_NAME: Joi.string().default('smartbin_dev'),
 
   JWT_SECRET: Joi.string().default('N8kNKyW36E9cv1EOLlTjsgDwR9uX'),
   JWT_EXPIRY: Joi.string().default('48h'),
