@@ -9,7 +9,18 @@ import { ConfigAttributes } from './config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import session from 'express-session';
-import { apiReference } from '@scalar/nestjs-api-reference';
+
+/**
+ * Load Scalar via native ESM import so Nest's CJS build does not
+ * `require()` Scalar's ESM-only deps (fails on Node 18).
+ * Function() prevents TypeScript from rewriting import() → require().
+ */
+async function loadScalarApiReference() {
+  const scalar = (await new Function(
+    'return import("@scalar/nestjs-api-reference")',
+  )()) as typeof import('@scalar/nestjs-api-reference');
+  return scalar.apiReference;
+}
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -86,6 +97,7 @@ async function bootstrap() {
     },
   });
 
+  const apiReference = await loadScalarApiReference();
   app.use(
     '/documentation',
     apiReference({
