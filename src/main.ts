@@ -9,6 +9,7 @@ import { ConfigAttributes } from './config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import session from 'express-session';
+import { apiReference } from '@scalar/nestjs-api-reference';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -24,6 +25,26 @@ async function bootstrap() {
   app.use(
     helmet({
       xPoweredBy: false,
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: [`'self'`, 'unpkg.com'],
+          styleSrc: [
+            `'self'`,
+            `'unsafe-inline'`,
+            'cdn.jsdelivr.net',
+            'fonts.googleapis.com',
+            'unpkg.com',
+          ],
+          fontSrc: [`'self'`, 'fonts.gstatic.com', 'data:'],
+          imgSrc: [`'self'`, 'data:', 'cdn.jsdelivr.net'],
+          scriptSrc: [
+            `'self'`,
+            `https: 'unsafe-inline'`,
+            `cdn.jsdelivr.net`,
+            `'unsafe-eval'`,
+          ],
+        },
+      },
     }),
   );
 
@@ -65,9 +86,20 @@ async function bootstrap() {
     },
   });
 
+  app.use(
+    '/documentation',
+    apiReference({
+      content: documentFactory(),
+      tagsSorter: 'alpha',
+      theme: 'deepSpace',
+      title: 'Smartbin API Reference',
+      setPageTitle: (input) => `Smartbin API Reference - ${input.title}`,
+    }),
+  );
+
   const port = config.get('port', { infer: true });
 
-  app.set('trust proxy')
+  app.set('trust proxy');
 
   await app.listen(port);
 }
