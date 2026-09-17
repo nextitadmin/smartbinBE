@@ -115,6 +115,12 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
+    "moduleNameMapper": {
+      "^@models/(.*)$": "<rootDir>/models/$1",
+      "^@common/(.*)$": "<rootDir>/common/$1",
+      "^@utils/(.*)$": "<rootDir>/utils/$1",
+      "^@src/(.*)$": "<rootDir>/$1"
+    },
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },

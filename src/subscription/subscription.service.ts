@@ -25,14 +25,37 @@ export class SubscriptionService {
   async getStatus(user: AuthUser) {
     return this.subscriptions
       .findOne({ userId: user.id })
+      .sort({ startDate: -1 })
       .populate('plan', 'name price interval duration')
       .select('plan status startDate endDate');
+  }
+
+  async expireOverdueSubscriptions() {
+    const startedAt = Date.now();
+    const now = new Date();
+
+    const result = await this.subscriptions.updateMany(
+      {
+        status: SubscriptionStatus.ACTIVE,
+        endDate: { $lte: now },
+      },
+      {
+        $set: { status: SubscriptionStatus.EXPIRED },
+      },
+    );
+
+    return {
+      matchedCount: result.matchedCount,
+      expiredCount: result.modifiedCount,
+      durationMs: Date.now() - startedAt,
+      expiredAt: now,
+    };
   }
 
   async subscribe({ user, dto }: { user: AuthUser; dto: SubscribePlanDTO }) {
     const existingSubscription = await this.subscriptions.findOne({
       userId: user.id,
-      status: { $ne: 'cancelled' },
+      status: SubscriptionStatus.ACTIVE,
     });
 
     if (existingSubscription) {

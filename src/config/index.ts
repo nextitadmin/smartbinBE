@@ -48,6 +48,9 @@ export interface ConfigAttributes {
     secretKey: string;
   };
   CACHE_URL?: string;
+  subscriptionExpiry: {
+    enabled: boolean;
+  };
 }
 
 const config = (): ConfigAttributes => ({
@@ -94,6 +97,9 @@ const config = (): ConfigAttributes => ({
     secretKey: process.env.PAY4IT_SECRET_KEY,
   },
   CACHE_URL: process.env.CACHE_URL,
+  subscriptionExpiry: {
+    enabled: process.env.SUBSCRIPTION_EXPIRY_ENABLED !== 'false',
+  },
 });
 
 const schema = Joi.object<Record<string, string>>({
@@ -132,6 +138,10 @@ const schema = Joi.object<Record<string, string>>({
   CACHE_URL: Joi.string()
     .uri({ scheme: ['redis', 'rediss'] })
     .optional(),
+
+  SUBSCRIPTION_EXPIRY_ENABLED: Joi.string()
+    .valid('true', 'false')
+    .default('true'),
 });
 
 export const configModuleOpts: ConfigModuleOptions = {

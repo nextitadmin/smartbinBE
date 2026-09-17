@@ -1,11 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import e from 'express';
 import { SchemaTypes, Types } from 'mongoose';
 
 export enum SubscriptionStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
   CANCELLED = 'cancelled',
+  EXPIRED = 'expired',
 }
 
 export interface SubscriptionAttributes {
@@ -55,6 +55,9 @@ export class Subscription implements SubscriptionAttributes {
 }
 
 export const SubscriptionSchema = SchemaFactory.createForClass(Subscription);
+
+SubscriptionSchema.index({ status: 1, endDate: 1 });
+SubscriptionSchema.index({ userId: 1, startDate: -1 });
 
 SubscriptionSchema.pre('find', function (next) {
   const obj = this as any;
