@@ -6,6 +6,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { VerifyNinDto } from './dto/kyc.dto';
 import { Auth, AuthenticatedUser } from '@common/decorators/auth.decorator';
 import { type AuthUser } from '@common/types';
+import { SuccessResponse } from '@common/http';
 
 @ApiTags('Identities')
 @Controller({
@@ -21,13 +22,15 @@ export class KycController {
     @Body() body: VerifyNinDto,
     @AuthenticatedUser() user: AuthUser,
   ) {
-    return this.kycService.verifyNin({
+    const response = await this.kycService.verifyNin({
       ...body,
       firstName: user.firstName,
       lastName: user.lastName,
     });
+    return new SuccessResponse('Nin verified successfully', response.status);
   }
 }
+
 //   constructor(private readonly kycService: KycService) {}
 
 //   @MessagePattern({ cmd: AdminMessagePatternCommands.KycFlow.GetApplications })
