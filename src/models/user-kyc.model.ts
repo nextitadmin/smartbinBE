@@ -73,6 +73,7 @@ export interface UserKycAttributes {
   ninVerificationProviderStatus?: string;
   rejectionReason?: string;
   hasCompletedKyc?: boolean;
+  providerResponse: Record<string, any>;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -104,7 +105,11 @@ export class UserKyc extends Document {
   @Prop({ type: SchemaTypes.String, required: false })
   nationality: string;
 
-  @Prop({ type: SchemaTypes.String, enum: Object.values(Gender), required: false })
+  @Prop({
+    type: SchemaTypes.String,
+    enum: Object.values(Gender),
+    required: false,
+  })
   gender: Gender;
 
   @Prop({ type: SchemaTypes.String, required: false })
@@ -224,6 +229,9 @@ export class UserKyc extends Document {
 
   @Prop({ type: SchemaTypes.Boolean, default: false })
   hasCompletedKyc: boolean;
+
+  @Prop({ type: SchemaTypes.Mixed, required: false })
+  providerResponse: Record<string, any>;
 
   @Prop({ type: Date })
   createdAt?: Date;

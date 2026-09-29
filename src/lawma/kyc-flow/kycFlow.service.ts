@@ -14,18 +14,16 @@ import { IdVerificationStatus } from 'src/shared/constants';
 
 @Injectable()
 export class KycFlowService {
-  constructor(
-    private readonly kycService: KycService
-  ) {}
+  constructor(private readonly kycService: KycService) {}
 
   async getAllApplications(
     page: number,
     limit: number,
     status: string = 'pending',
   ) {
+    const statusType =
+      status === 'pending' ? IdVerificationStatus.SUBMITTED : status;
 
-    const statusType = status === "pending" ? IdVerificationStatus.SUBMITTED : status
-    
     return this.kycService.getAllApplications(page, limit, statusType);
   }
 
@@ -33,26 +31,18 @@ export class KycFlowService {
     data: Record<string, any>;
     message: string;
   }> {
-
     return this.kycService.getKycApplicationDetails(applicationId);
-
   }
 
   async approveApplication(applicationId: string) {
-
     return this.kycService.approveApplication(applicationId);
-
   }
 
   async verifyNin(applicationId: string) {
-
     return this.kycService.verifyApplicationNin(applicationId);
-
   }
 
   async rejectApplication(applicationId: string, reason?: string) {
-
     return this.kycService.rejectApplication(applicationId, reason);
-
   }
 }

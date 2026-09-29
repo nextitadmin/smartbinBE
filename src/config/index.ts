@@ -82,7 +82,10 @@ const config = (): ConfigAttributes => ({
   },
   kyc: {
     baseUrl: process.env.KYC_BASE_URL,
-    apiKey: process.env.KYC_API_KEY,
+    apiKey:
+      process.env.APPLICATION_ENV === ApplicationEnvironment.Development
+        ? process.env.KYC_TEST_API_KEY || process.env.KYC_API_KEY
+        : process.env.KYC_API_KEY || process.env.KYC_LIVE_API_KEY,
   },
   frontendUrl: process.env.FRONTEND_URL,
   adminFrontendUrl: process.env.ADMIN_FRONTEND_URL,

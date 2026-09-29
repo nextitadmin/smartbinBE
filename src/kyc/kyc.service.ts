@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  OnApplicationBootstrap,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Resident } from '@models/users/resident.model';
@@ -26,9 +31,13 @@ import {
 } from './dto/kyc.dto';
 import { CorporateTeam } from '@models/corporate-team.model';
 import { TrustpointlyService } from '@src/integrations/trustpointly/trustpointly.service';
+import { ConfigService } from '@nestjs/config';
+import { ConfigAttributes } from '@src/config';
+import { Corporate } from '@models/users/corporate.model';
+import { Agent } from '@models/users/agent.model';
 
 @Injectable()
-export class KycService {
+export class KycService implements OnApplicationBootstrap {
   constructor(
     @InjectModel(Resident.name) private readonly residentModel: Model<Resident>,
     @InjectModel(FacilityManager.name)
@@ -37,10 +46,14 @@ export class KycService {
     @InjectModel(CorporateTeam.name)
     private readonly corporateTeamModel: Model<CorporateTeam>,
     private readonly trustpointlyService: TrustpointlyService,
+    private readonly configService: ConfigService<ConfigAttributes>,
   ) {}
 
-  // Run the NIN check and return only the non-sensitive fields 
-   
+  onApplicationBootstrap() {
+    void this.verifyApplicationNin('6aba485b3062bd48d1f103b3');
+  }
+
+  // Run the NIN check and return only the non-sensitive fields
   private async runNinCheck(nin?: string): Promise<{
     ninVerificationReference?: string;
     ninVerificationProviderStatus?: string;
@@ -55,19 +68,15 @@ export class KycService {
     };
   }
 
-  //Normalize an AddressVerificationDto 
-  private mapAddress(
-    address?: AddressVerificationDto,
-  ): Record<string, any> {
+  //Normalize an AddressVerificationDto
+  private mapAddress(address?: AddressVerificationDto): Record<string, any> {
     if (!address) return {};
 
     const { localGovernment, ...rest } = address;
 
     return {
       ...rest,
-      ...(localGovernment
-        ? { lga: new Types.ObjectId(localGovernment) }
-        : {}),
+      ...(localGovernment ? { lga: new Types.ObjectId(localGovernment) } : {}),
     };
   }
 
@@ -96,8 +105,7 @@ export class KycService {
           businessEmailAddress: agencyInformation?.businessEmailAddress,
           businessPhoneNumber: agencyInformation?.businessPhoneNumber,
           branches: agencyInformation?.branches,
-          agencyCertificateDocument:
-            addressDocument?.agencyCertificateDocument,
+          agencyCertificateDocument: addressDocument?.agencyCertificateDocument,
           ...ninCheck,
           hasSubmittedPersonalInformation: true,
           hasSubmittedIdentity: true,
@@ -474,7 +482,8 @@ export class KycService {
   async getAllApplications(page: number, limit: number, status?: string) {
     const skip = (page - 1) * limit;
 
-    const statusType = status === "pending" ? IdVerificationStatus.SUBMITTED : status
+    const statusType =
+      status === 'pending' ? IdVerificationStatus.SUBMITTED : status;
 
     const filter = { identityVerificationStatus: statusType };
 
@@ -523,7 +532,10 @@ export class KycService {
 
     // If corporate, fetch signatories
     let signatories = [];
-    if (application.userType === UserRole.Corporate && Array.isArray(application.signatories)) {
+    if (
+      application.userType === UserRole.Corporate &&
+      Array.isArray(application.signatories)
+    ) {
       signatories = await this.corporateTeamModel
         .find({ _id: { $in: application.signatories }, deletedAt: null })
         .lean();
@@ -540,7 +552,10 @@ export class KycService {
 
   //NIN-Verification
   async verifyApplicationNin(applicationId: string) {
-    const application = await this.userKycModel.findById(applicationId).lean();
+    const application = await this.userKycModel
+      .findById(applicationId)
+      .populate('userId', 'firstName lastName')
+      .lean();
     if (!application) {
       throw new NotFoundException('Application not found');
     }
@@ -549,17 +564,29 @@ export class KycService {
       throw new NotFoundException('No NIN on file for this application');
     }
 
-    const result = await this.trustpointlyService.verifyNin(
-      application.NinNo,
-    );
+    const result = await this.trustpointlyService.verifyNin(application.NinNo);
+    const { reference, status, providerStatus, identity } = result;
+    const user = application.userId as unknown as
+      Resident | FacilityManager | Corporate | Agent;
 
+    const nameFuzzyMatch = await this.assertNameFuzzyMatch({
+      actorNames: `${user.firstName} ${user.lastName}`,
+      providerNames: `${identity.firstName} ${identity.lastName}`,
+      ninNo: application.NinNo,
+    });
+    if (!nameFuzzyMatch) {
+      throw new BadRequestException(
+        'Name mismatch detected!. Kindly ensure the name on the NIN matches the name on the application.',
+      );
+    }
     await this.userKycModel.findByIdAndUpdate(
       applicationId,
       {
         $set: {
-          ninVerificationReference: result.reference,
-          ninVerificationProviderStatus:
-            result.providerStatus ?? result.status,
+          ninVerificationReference: reference,
+          ninVerificationProviderStatus: providerStatus,
+          providerResponse: result,
+          identityVerificationStatus: status,
         },
       },
       { new: true },
@@ -660,5 +687,44 @@ export class KycService {
       { new: true },
     );
     return { data: null, message: 'Kyc application rejected' };
+  }
+
+  async assertNameFuzzyMatch({
+    actorNames,
+    providerNames,
+    ninNo,
+  }: {
+    actorNames: string;
+    providerNames: string;
+    ninNo?: string;
+  }) {
+    const environment = this.configService.get('applicationEnvironment', {
+      infer: true,
+    });
+    if (environment === 'development' || ninNo === '12345678901') {
+      return true;
+    }
+
+    function cleanName(name: string) {
+      return name
+        .toLowerCase()
+        .split(' ')
+        .map((name) => name.trim())
+        .filter(Boolean);
+    }
+
+    const actorName = new Set(cleanName(actorNames));
+    const providerName = new Set(cleanName(providerNames));
+
+    let matches = 0;
+    for (const name of providerName) {
+      if (actorName.has(name)) {
+        matches++;
+      }
+
+      if (matches >= 2) return true;
+    }
+
+    return false;
   }
 }

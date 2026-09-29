@@ -26,7 +26,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { SmartBinModule } from './smart-bin/smart-bin.module';
 import { ResidentModule } from './resident/resident.module';
 
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AgentAuthGuard } from '@common/guards/agent.guard';
 import { ResidentAuthGuard } from '@common/guards/resident.guard';
 import { CorporateAuthGuard } from '@common/guards/corporate.guard';
@@ -48,6 +48,8 @@ import { RbacModule } from './rbac/rbac.module';
 import { QueuesModule } from './queues/queues.module';
 import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
 import { AppService } from './app.service';
+import { AppResponseInterceptor } from '@common/http';
+import { KycModule } from './kyc/kyc.module';
 
 @Module({
   imports: [
@@ -83,6 +85,7 @@ import { AppService } from './app.service';
     SuperAdminModule,
     LawmaModule,
     RbacModule,
+    KycModule,
     MongooseModule.forFeature([
       { name: SmartBin.name, schema: SmartBinSchema },
     ]),
@@ -109,6 +112,10 @@ import { AppService } from './app.service';
     {
       provide: APP_GUARD,
       useValue: AuthGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AppResponseInterceptor,
     },
   ],
 })

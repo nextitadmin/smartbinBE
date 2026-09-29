@@ -13,7 +13,7 @@ import {
 } from '@models/corporate-team.model';
 import { UserKycRepository } from '@models/repository/user-kyc.repository';
 import { TrustpointlyModule } from '@src/integrations/trustpointly/trustpointly.module';
-// import { AdminKycController } from './admin.controller';
+import { KycController } from './kyc.controller';
 
 @Module({
   imports: [
@@ -25,7 +25,7 @@ import { TrustpointlyModule } from '@src/integrations/trustpointly/trustpointly.
     ]),
     TrustpointlyModule,
   ],
-  // controllers: [AdminKycController],
+  controllers: [KycController],
   providers: [KycService],
   exports: [KycService],
 })
