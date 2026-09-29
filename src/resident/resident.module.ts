@@ -89,7 +89,7 @@ import { Lga, LgaSchema } from '@models/lgas.model';
       {name: Lga.name, schema:LgaSchema}
     ]),
     SmartBinModule,
-    KycModule,
+    forwardRef(() => KycModule),
     DashboardModule,
     PickupModule,
     WalletModule,

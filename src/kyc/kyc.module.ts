@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Resident, ResidentSchema } from '@models/users/resident.model';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
@@ -11,9 +11,12 @@ import {
   CorporateTeam,
   CorporateTeamSchema,
 } from '@models/corporate-team.model';
-import { UserKycRepository } from '@models/repository/user-kyc.repository';
 import { TrustpointlyModule } from '@src/integrations/trustpointly/trustpointly.module';
 import { KycController } from './kyc.controller';
+import { ResidentModule } from '@src/resident/resident.module';
+import { AgentModule } from '@src/agent/agent.module';
+import { CorporateModule } from '@src/corporate/corporate.module';
+import { FacilityManagerModule } from '@src/facility-manager/facility-manager.module';
 
 @Module({
   imports: [
@@ -24,6 +27,10 @@ import { KycController } from './kyc.controller';
       { name: CorporateTeam.name, schema: CorporateTeamSchema },
     ]),
     TrustpointlyModule,
+    forwardRef(() => ResidentModule),
+    forwardRef(() => AgentModule),
+    forwardRef(() => CorporateModule),
+    forwardRef(() => FacilityManagerModule),
   ],
   controllers: [KycController],
   providers: [KycService],

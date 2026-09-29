@@ -1,8 +1,11 @@
 // import { PaginatedSuccessResponse, SuccessResponse } from '@common/http';
-import { Controller, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Param, Patch, Post } from '@nestjs/common';
 import { KycService } from './kyc.service';
 import { AuthGuard } from '@common/guards/actor.guard';
 import { ApiTags } from '@nestjs/swagger';
+import { VerifyNinDto } from './dto/kyc.dto';
+import { Auth, AuthenticatedUser } from '@common/decorators/auth.decorator';
+import { type AuthUser } from '@common/types';
 
 @ApiTags('Identities')
 @Controller({
@@ -12,9 +15,17 @@ import { ApiTags } from '@nestjs/swagger';
 export class KycController {
   constructor(private readonly kycService: KycService) {}
 
-  @Post(':applicationId/verify-nin')
-  async verifyNin(@Param('applicationId') applicationId: string) {
-    return this.kycService.verifyApplicationNin(applicationId);
+  @Post('/verify-nin')
+  @Auth()
+  async verifyNin(
+    @Body() body: VerifyNinDto,
+    @AuthenticatedUser() user: AuthUser,
+  ) {
+    return this.kycService.verifyNin({
+      ...body,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    });
   }
 }
 //   constructor(private readonly kycService: KycService) {}

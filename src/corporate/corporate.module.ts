@@ -69,7 +69,7 @@ import { Lga,LgaSchema } from '@models/lgas.model';
     PickupModule,
     DashboardModule,
     forwardRef(() => NotificationModule),
-    KycModule,
+    forwardRef(() => KycModule),
     TeamMember,
   ],
 

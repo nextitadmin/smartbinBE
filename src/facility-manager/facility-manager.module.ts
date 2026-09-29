@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { FacilityManagerService } from './facility-manager.service';
 import { FacilityManagerController } from './facility-manager.controller';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -61,7 +61,7 @@ import { Lga,LgaSchema } from '@models/lgas.model';
       {name: Lga.name, schema:LgaSchema}
     ]),
     SmartBinModule,
-    KycModule,
+    forwardRef(() => KycModule),
     TransactionModule,
   ],
   controllers: [

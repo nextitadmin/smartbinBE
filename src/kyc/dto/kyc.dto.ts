@@ -430,3 +430,12 @@ export class UpdateTeamMemberDto {
   @IsString({ message: 'ID document must be a string' })
   idDocument?: string;
 }
+
+export class VerifyNinDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty({ message: 'NIN number is required' })
+  @Length(11, 11, { message: 'NIN must be exactly 11 digits' })
+  @Matches(/^\d{11}$/, { message: 'NIN must contain only digits' })
+  ninNo: string;
+}

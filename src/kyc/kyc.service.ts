@@ -28,6 +28,7 @@ import {
   SignatoriesDto,
   TeamMemberDto,
   UpdateTeamMemberDto,
+  VerifyNinDto,
 } from './dto/kyc.dto';
 import { CorporateTeam } from '@models/corporate-team.model';
 import { TrustpointlyService } from '@src/integrations/trustpointly/trustpointly.service';
@@ -550,6 +551,30 @@ export class KycService implements OnApplicationBootstrap {
     };
   }
 
+  async verifyNin(dto: VerifyNinDto & { firstName: string; lastName: string }) {
+    const { ninNo, firstName, lastName } = dto;
+    const result = await this.trustpointlyService.verifyNin(ninNo);
+    const { reference, status, providerStatus, identity } = result;
+
+    const nameFuzzyMatch = await this.assertNameFuzzyMatch({
+      actorNames: `${firstName} ${lastName}`,
+      providerNames: `${identity.firstName} ${identity.lastName}`,
+      ninNo: ninNo,
+    });
+    if (!nameFuzzyMatch) {
+      throw new BadRequestException(
+        'Name mismatch detected!. Kindly ensure the name on the NIN matches the name on the application.',
+      );
+    }
+
+    return {
+      reference,
+      status,
+      providerStatus,
+      identity,
+      namedMatched: nameFuzzyMatch,
+    };
+  }
   //NIN-Verification
   async verifyApplicationNin(applicationId: string) {
     const application = await this.userKycModel
@@ -564,28 +589,21 @@ export class KycService implements OnApplicationBootstrap {
       throw new NotFoundException('No NIN on file for this application');
     }
 
-    const result = await this.trustpointlyService.verifyNin(application.NinNo);
-    const { reference, status, providerStatus, identity } = result;
     const user = application.userId as unknown as
       Resident | FacilityManager | Corporate | Agent;
-
-    const nameFuzzyMatch = await this.assertNameFuzzyMatch({
-      actorNames: `${user.firstName} ${user.lastName}`,
-      providerNames: `${identity.firstName} ${identity.lastName}`,
+    const result = await this.verifyNin({
       ninNo: application.NinNo,
+      firstName: user.firstName,
+      lastName: user.lastName,
     });
-    if (!nameFuzzyMatch) {
-      throw new BadRequestException(
-        'Name mismatch detected!. Kindly ensure the name on the NIN matches the name on the application.',
-      );
-    }
+    const { reference, status, providerStatus, identity } = result;
     await this.userKycModel.findByIdAndUpdate(
       applicationId,
       {
         $set: {
           ninVerificationReference: reference,
           ninVerificationProviderStatus: providerStatus,
-          providerResponse: result,
+          providerResponse: { result },
           identityVerificationStatus: status,
         },
       },
