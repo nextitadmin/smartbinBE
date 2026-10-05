@@ -719,7 +719,7 @@ export class KycService implements OnApplicationBootstrap {
     const environment = this.configService.get('applicationEnvironment', {
       infer: true,
     });
-    if (environment === 'development' || ninNo === '12345678901') {
+    if (environment === 'development' || environment === 'staging' || ninNo === '12345678901') {
       return true;
     }
 
