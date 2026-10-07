@@ -36,6 +36,7 @@ import { ConfigService } from '@nestjs/config';
 import { ConfigAttributes } from '@src/config';
 import { Corporate } from '@models/users/corporate.model';
 import { Agent } from '@models/users/agent.model';
+import { ApplicationEnvironment } from '@common/constants';
 
 @Injectable()
 export class KycService implements OnApplicationBootstrap {
@@ -719,7 +720,12 @@ export class KycService implements OnApplicationBootstrap {
     const environment = this.configService.get('applicationEnvironment', {
       infer: true,
     });
-    if (environment === 'development' || environment === 'staging' || ninNo === '12345678901') {
+
+    if (
+      environment === ApplicationEnvironment.Development ||
+      environment === ApplicationEnvironment.Staging ||
+      ninNo === '12345678901'
+    ) {
       return true;
     }
 
