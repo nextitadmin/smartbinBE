@@ -716,12 +716,12 @@ export class KycService implements OnApplicationBootstrap {
     providerNames: string;
     ninNo?: string;
   }) {
-    const environment = this.configService.get('applicationEnvironment', {
-      infer: true,
-    });
-    if (environment === 'development' || ninNo === '12345678901') {
-      return true;
-    }
+    // const environment = this.configService.get('applicationEnvironment', {
+    //   infer: true,
+    // });
+    // if (environment === 'development' || ninNo === '12345678901') {
+    //   return true;
+    // }
 
     function cleanName(name: string) {
       return name
