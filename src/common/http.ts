@@ -66,9 +66,10 @@ export class AppResponseInterceptor implements NestInterceptor {
         if (data instanceof ErrorResponseObject || data instanceof Error) {
           return data;
         }
+
         return new SuccessResponse(
           data?.message || 'operation successful',
-          data.data,
+          data?.data || data,
         );
       }),
     );
