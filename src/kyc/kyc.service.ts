@@ -38,7 +38,7 @@ import { Corporate } from '@models/users/corporate.model';
 import { Agent } from '@models/users/agent.model';
 
 @Injectable()
-export class KycService implements OnApplicationBootstrap {
+export class KycService {
   constructor(
     @InjectModel(Resident.name) private readonly residentModel: Model<Resident>,
     @InjectModel(FacilityManager.name)
@@ -49,10 +49,6 @@ export class KycService implements OnApplicationBootstrap {
     private readonly trustpointlyService: TrustpointlyService,
     private readonly configService: ConfigService<ConfigAttributes>,
   ) {}
-
-  onApplicationBootstrap() {
-    void this.verifyApplicationNin('6aba485b3062bd48d1f103b3');
-  }
 
   // Run the NIN check and return only the non-sensitive fields
   private async runNinCheck(nin?: string): Promise<{
