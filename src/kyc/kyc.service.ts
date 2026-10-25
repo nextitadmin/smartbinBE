@@ -37,23 +37,22 @@ import { ConfigAttributes } from '@src/config';
 import { Corporate } from '@models/users/corporate.model';
 import { Agent } from '@models/users/agent.model';
 import { ApplicationEnvironment } from '@common/constants';
+import { FacilityUsers } from '@models/facility-users.model';
 
 @Injectable()
-export class KycService implements OnApplicationBootstrap {
+export class KycService {
   constructor(
     @InjectModel(Resident.name) private readonly residentModel: Model<Resident>,
     @InjectModel(FacilityManager.name)
     private readonly facilityModel: Model<FacilityManager>,
+    @InjectModel(FacilityUsers.name)
+    private readonly facilityUserModel: Model<FacilityUsers>,
     @InjectModel(UserKyc.name) private readonly userKycModel: Model<UserKyc>,
     @InjectModel(CorporateTeam.name)
     private readonly corporateTeamModel: Model<CorporateTeam>,
     private readonly trustpointlyService: TrustpointlyService,
     private readonly configService: ConfigService<ConfigAttributes>,
   ) {}
-
-  onApplicationBootstrap() {
-    void this.verifyApplicationNin('6aba485b3062bd48d1f103b3');
-  }
 
   // Run the NIN check and return only the non-sensitive fields
   private async runNinCheck(nin?: string): Promise<{
@@ -63,6 +62,9 @@ export class KycService implements OnApplicationBootstrap {
     if (!nin) return {};
 
     const result = await this.trustpointlyService.verifyNin(nin);
+    if (result.status === 'rejected') {
+      throw new BadRequestException('NIN verification was rejected');
+    }
 
     return {
       ninVerificationReference: result.reference,
@@ -135,14 +137,54 @@ export class KycService implements OnApplicationBootstrap {
     accountType: UserRole;
     applicationData: CreateResidentKycDto | CreateFacilityManagerKycDto;
   }) {
+    const targetUserId = new Types.ObjectId(dto.userId);
+    const facilityApplication =
+      dto.accountType === UserRole.Facility &&
+      'userId' in dto.applicationData &&
+      dto.applicationData.userId
+        ? await this.facilityUserModel
+            .findOne({
+              _id: new Types.ObjectId(dto.applicationData.userId),
+              accountId: new Types.ObjectId(dto.userId),
+            })
+            .lean()
+        : null;
+
+    const personalInformation =
+      dto.applicationData.personalInformation as PersonalInfoDto;
+
+    // NIN is checked before any write, so a rejected verdict persists nothing
     const ninCheck = await this.runNinCheck(
       dto.applicationData.identityInformation?.NinNo,
     );
 
+    if (facilityApplication) {
+      await this.facilityUserModel.findByIdAndUpdate(
+        facilityApplication._id,
+        {
+          $set: {
+            firstName: personalInformation.firstName,
+            lastName: personalInformation.lastName,
+            email: personalInformation.email,
+            phoneNumber: personalInformation.phoneNumber,
+          },
+        },
+        { new: true },
+      );
+    }
+
+    const applicantNameData = {
+      firstName: personalInformation.firstName ?? '',
+      lastName: personalInformation.lastName ?? '',
+      email: personalInformation.email ?? '',
+      phoneNumber: personalInformation.phoneNumber ?? '',
+    };
+
     const userKyc = await this.userKycModel.findOneAndUpdate(
-      { userId: new Types.ObjectId(dto.userId), userType: dto.accountType },
+      { userId: targetUserId, userType: dto.accountType },
       {
         $set: {
+          ...applicantNameData,
           ...dto.applicationData.personalInformation,
           ...dto.applicationData.identityInformation,
           ...this.mapAddress(dto.applicationData.addressInformation),
@@ -160,6 +202,10 @@ export class KycService implements OnApplicationBootstrap {
     );
 
     return {
+      firstName: userKyc.firstName,
+      lastName: userKyc.lastName,
+      email: userKyc.email,
+      phoneNumber: userKyc.phoneNumber,
       hasSubmittedPersonalInformation: userKyc.hasSubmittedPersonalInformation,
       hasSubmittedidentity: userKyc.hasSubmittedIdentity,
       identityVerificationStatus: userKyc.identityVerificationStatus,
@@ -553,14 +599,14 @@ export class KycService implements OnApplicationBootstrap {
   }
 
   async verifyNin(dto: VerifyNinDto & { firstName: string; lastName: string }) {
-    const { ninNo, firstName, lastName } = dto;
-    const result = await this.trustpointlyService.verifyNin(ninNo);
+    const { nin, firstName, lastName } = dto;
+    const result = await this.trustpointlyService.verifyNin(nin);
     const { reference, status, providerStatus, identity } = result;
 
     const nameFuzzyMatch = await this.assertNameFuzzyMatch({
       actorNames: `${firstName} ${lastName}`,
       providerNames: `${identity.firstName} ${identity.lastName}`,
-      ninNo: ninNo,
+      ninNo: nin,
     });
     if (!nameFuzzyMatch) {
       throw new BadRequestException(
@@ -576,6 +622,11 @@ export class KycService implements OnApplicationBootstrap {
       namedMatched: nameFuzzyMatch,
     };
   }
+  // Provider lookup only. Name matching and caching are done by the controller.
+  async verifyNinField(nin: string) {
+    return this.trustpointlyService.verifyNin(nin);
+  }
+
   //NIN-Verification
   async verifyApplicationNin(applicationId: string) {
     const application = await this.userKycModel
@@ -593,7 +644,7 @@ export class KycService implements OnApplicationBootstrap {
     const user = application.userId as unknown as
       Resident | FacilityManager | Corporate | Agent;
     const result = await this.verifyNin({
-      ninNo: application.NinNo,
+      nin: application.NinNo,
       firstName: user.firstName,
       lastName: user.lastName,
     });
@@ -717,17 +768,12 @@ export class KycService implements OnApplicationBootstrap {
     providerNames: string;
     ninNo?: string;
   }) {
-    const environment = this.configService.get('applicationEnvironment', {
-      infer: true,
-    });
-
-    if (
-      environment === ApplicationEnvironment.Development ||
-      environment === ApplicationEnvironment.Staging ||
-      ninNo === '12345678901'
-    ) {
-      return true;
-    }
+    // const environment = this.configService.get('applicationEnvironment', {
+    //   infer: true,
+    // });
+    // if (environment === 'development' || ninNo === '12345678901') {
+    //   return true;
+    // }
 
     function cleanName(name: string) {
       return name

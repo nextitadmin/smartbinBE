@@ -3,7 +3,7 @@ import { Document, SchemaTypes, Types } from 'mongoose';
 
 import { UserRole } from './types';
 import { Wallet } from './wallet.model';
-import { nanoid } from 'node_modules/nanoid/index.cjs';
+import { nanoid } from 'nanoid';
 
 export enum TransactionStatus {
   Abandoned = 'abandoned',

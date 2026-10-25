@@ -238,6 +238,18 @@ export class UserKyc extends Document {
 
   @Prop({ type: Date })
   updatedAt?: Date;
+
+  @Prop({ type: SchemaTypes.String, required: false })
+  firstName: string;
+
+  @Prop({ type: SchemaTypes.String, required: false })
+  lastName: string;
+
+  @Prop({ type: SchemaTypes.String, required: false })
+  email: string;
+
+  @Prop({ type: SchemaTypes.String, required: false })
+  phoneNumber: string;
 }
 
 export const UserKycSchema = SchemaFactory.createForClass(UserKyc);

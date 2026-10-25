@@ -12,6 +12,7 @@ import { ReportModule } from '@src/report/report.module';
 import { AdminWasteManagementModule } from './waste-management/waste-management.module';
 import { LawMaAdminReportModule } from './report/report.module';
 import { SmartbinPartnersModule } from './smartbin-partners/smartbin-partners.module';
+import { ReconciliationModule } from '@src/reconciliation/reconciliation.module';
 
 @Module({
   imports: [
@@ -27,7 +28,8 @@ import { SmartbinPartnersModule } from './smartbin-partners/smartbin-partners.mo
     ReportModule,
     LawMaAdminReportModule,
     AdminWasteManagementModule,
-    SmartbinPartnersModule
+    SmartbinPartnersModule,
+    ReconciliationModule
   ],
 controllers:[]
 })

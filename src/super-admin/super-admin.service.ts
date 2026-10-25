@@ -6,7 +6,7 @@ import { Resident } from '@models/users/resident.model';
 import { Agent } from '@models/users/agent.model';
 import { Corporate } from '@models/users/corporate.model';
 import { FacilityManager } from '@models/users/facility-manager.model';
-import { Bill } from '@models/bill.model';
+import { Bill, BillStatus } from '@models/bill.model';
 import { Wallet } from '@models/wallet.model';
 import { BinType, SmartBin, SmartbinStatus } from '@models/smart-bin.model';
 import {
@@ -293,7 +293,24 @@ export class SuperAdminService {
     const numberOfLgasCovered = Array.isArray(lgaIds) ? lgaIds.length : 0;
 
     // Unpaid bills
-    const unpaidBillsTotalAmount = 0;
+    const unpaidBillMatch: any = { status: BillStatus.Pending };
+    if (startDate && endDate)
+      unpaidBillMatch.createdAt = { $gte: startDate, $lt: endDate };
+    else if (startDate && !endDate)
+      unpaidBillMatch.createdAt = { $gte: startDate };
+
+    const [unpaidBillsSummary] = await this.billModel
+      .aggregate([
+        { $match: unpaidBillMatch },
+        {
+          $group: {
+            _id: null,
+            count: { $sum: 1 },
+            totalAmount: { $sum: '$amount' },
+          },
+        },
+      ])
+      .exec();
 
     // PSP revenue breakdown for dashboard
     const pspTransactionMatch: any = { status: TransactionStatus.Successful };
@@ -364,8 +381,8 @@ export class SuperAdminService {
       householdsEnumerated,
       numberOfLgasCovered,
       unpaidBills: {
-        count: unpaidBillsTotalAmount,
-        totalAmount: unpaidBillsTotalAmount,
+        count: unpaidBillsSummary?.count ?? 0,
+        totalAmount: unpaidBillsSummary?.totalAmount ?? 0,
       },
       totalTeamMembers: totalTeamMembers,
       pspCompanies: {

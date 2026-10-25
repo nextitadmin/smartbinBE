@@ -29,9 +29,12 @@ export class KycApplicationController {
     @Body() dto: CreateFacilityManagerKycDto,
     @AuthenticatedFacilityManager() facilityManager: FacilityManagerUser,
   ) {
+    const targetUserId = facilityManager.id;
+    const targetAccountType = facilityManager.role;
+
     const response = await this.kycService.createKyc({
-      userId: facilityManager.id,
-      accountType: facilityManager.role,
+      userId: targetUserId,
+      accountType: targetAccountType,
       applicationData: dto,
     });
     return new SuccessResponse(

@@ -17,6 +17,7 @@ import { ResidentModule } from '@src/resident/resident.module';
 import { AgentModule } from '@src/agent/agent.module';
 import { CorporateModule } from '@src/corporate/corporate.module';
 import { FacilityManagerModule } from '@src/facility-manager/facility-manager.module';
+import { FacilityUsers, FacilityUserSchema } from '@models/facility-users.model';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { FacilityManagerModule } from '@src/facility-manager/facility-manager.mo
       { name: Resident.name, schema: ResidentSchema },
       { name: FacilityManager.name, schema: FacilityManagerSchema },
       { name: CorporateTeam.name, schema: CorporateTeamSchema },
+      { name: FacilityUsers.name, schema: FacilityUserSchema },
     ]),
     TrustpointlyModule,
     forwardRef(() => ResidentModule),

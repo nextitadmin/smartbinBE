@@ -38,6 +38,7 @@ import { AgentSmartbinController } from './bin-management/bin-management.control
 import { AgentSmartbinService } from './bin-management/bin-management.service';
 import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
 import { Lga,LgaSchema } from '@models/lgas.model';
+import { FacilityUsers, FacilityUserSchema } from '@models/facility-users.model';
 import { TrustpointlyModule } from '@src/integrations/trustpointly/trustpointly.module';
 
 @Module({
@@ -86,7 +87,8 @@ import { TrustpointlyModule } from '@src/integrations/trustpointly/trustpointly.
         name: TeamMember.name,
         schema: TeamMemberSchema,
       },
-      {name: Lga.name, schema:LgaSchema}
+      {name: Lga.name, schema:LgaSchema},
+      { name: FacilityUsers.name, schema: FacilityUserSchema }
     ]),
     forwardRef(() => WalletModule),
     forwardRef(() => TransactionModule),

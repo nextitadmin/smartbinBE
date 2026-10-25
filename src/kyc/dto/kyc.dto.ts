@@ -123,6 +123,16 @@ export class PersonalInfoDto {
   @IsString({ message: 'Last name must be a string' })
   lastName?: string;
 
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsEmail({}, { message: 'Email must be valid' })
+  email?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString({ message: 'Phone number must be a string' })
+  phoneNumber?: string;
+
   @ApiProperty()
   @IsString({ message: 'Nationality must be a string' })
   nationality?: string;
@@ -279,6 +289,11 @@ export class CreateResidentKycDto {
 }
 
 export class CreateFacilityManagerKycDto {
+  @ApiProperty({ required: false, description: 'ID of the onboarded user this KYC belongs to. Defaults to the logged-in facility manager.' })
+  @IsOptional()
+  @IsMongoId({ message: 'Applicant user id must be a valid Mongo id' })
+  userId?: string;
+
   @ApiProperty({ type: PersonalInfoDto })
   @ValidateNested()
   @Type(() => PersonalInfoDto)
@@ -437,5 +452,15 @@ export class VerifyNinDto {
   @IsNotEmpty({ message: 'NIN number is required' })
   @Length(11, 11, { message: 'NIN must be exactly 11 digits' })
   @Matches(/^\d{11}$/, { message: 'NIN must contain only digits' })
-  ninNo: string;
+  nin: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  firstName?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  lastName?: string;
 }
