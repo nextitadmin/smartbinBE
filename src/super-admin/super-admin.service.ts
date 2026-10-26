@@ -27,6 +27,7 @@ import { AdminUser, PspUser } from '@common/types';
 import { GetPickupsForPspDto } from '@src/waste-management/pickup/dto/pickup.dto';
 import {
   RevenueOverviewDto,
+  PaymentDetailsFiltersDto,
   DashboardFiltersDto,
   DashboardFilterType,
   LawmaAdminDashboardFiltersDto,
@@ -654,9 +655,10 @@ export class SuperAdminService {
   }
 
   async getRevenue(filters?: RevenueOverviewDto) {
-    const currentYear = filters?.year || new Date().getFullYear();
+    const currentYear = Number(filters?.year) || new Date().getFullYear();
     const previousYear = currentYear - 1;
-    const { page = 1, limit = 10 } = filters || {};
+    const page = Number(filters?.page) || 1;
+    const limit = Number(filters?.limit) || 10;
     const skip = (page - 1) * limit;
 
     // 1. Total amount generated overtime (all successful transactions)
@@ -834,6 +836,43 @@ export class SuperAdminService {
         monthlyBreakdown: chartData,
       },
       pspRevenue: pspRevenue,
+    };
+  }
+
+  // Payment details table: lists existing transactions, newest first
+  async getPaymentDetails(filters?: PaymentDetailsFiltersDto) {
+    const page = Number(filters?.page) || 1;
+    const limit = Number(filters?.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const [transactions, total] = await Promise.all([
+      this.transactionModel
+        .find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      this.transactionModel.countDocuments(),
+    ]);
+
+    const payments = transactions.map((t: any) => ({
+      id: String(t._id),
+      paymentId: t.transactionReference,
+      revenueSource: t.service,
+      amount: t.amount,
+      date: t.createdAt,
+      paymentMethod: t.paymentMethod,
+      status: t.status,
+    }));
+
+    return {
+      payments,
+      paging: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        size: limit,
+      },
     };
   }
 

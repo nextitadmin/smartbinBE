@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import {
@@ -410,7 +414,9 @@ export class ReportService {
     } else if (type === ReportType.UserRegistration) {
       data = await this.adminUserRegistrationReport(dto);
     } else if (type === ReportType.UnpaidBills) {
-      // TODO
+      throw new BadRequestException(
+        'Unpaid bills report is not available yet for admins.',
+      );
     } else {
       throw new NotFoundException('Unsupported report type for Admin.');
     }
@@ -443,7 +449,7 @@ export class ReportService {
           from: moment(dto.startDate).format('DD/MM'),
           to: moment(dto.endDate).format('DD/MM'),
         },
-        totalRecords: data.length,
+        totalRecords: Array.isArray(data) ? data.length : (data?.records?.length ?? 0),
       },
     };
   }

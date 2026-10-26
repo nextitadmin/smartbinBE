@@ -553,7 +553,14 @@ export class CorporateService {
     if (!tokenDetails) {
       throw new UnauthorizedException('unable to unauthenticate');
     }
-    return this.getProfile(tokenDetails.id);
+    try {
+      return await this.getProfile(tokenDetails.id);
+    } catch (e) {
+      // Token belongs to a different actor type (e.g. super admin):
+      // report "no corporate" so the guard answers 401 instead of 404.
+      if (e instanceof NotFoundException) return null;
+      throw e;
+    }
   }
 
   async getCorporatesByAgent(agentId: string) {

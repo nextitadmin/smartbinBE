@@ -31,15 +31,29 @@ export class DashboardFiltersDto {
 export class RevenueOverviewDto {
    @ApiPropertyOptional()
    @IsOptional()
+   @Type(() => Number)
    year?: number;
 
    @ApiPropertyOptional()
    @IsOptional()
+   @Type(() => Number)
    page?: number;
 
    @ApiPropertyOptional()
    @IsOptional()
+   @Type(() => Number)
+   limit?: number;
+}
 
+export class PaymentDetailsFiltersDto {
+   @ApiPropertyOptional()
+   @IsOptional()
+   @Type(() => Number)
+   page?: number;
+
+   @ApiPropertyOptional()
+   @IsOptional()
+   @Type(() => Number)
    limit?: number;
 }
 

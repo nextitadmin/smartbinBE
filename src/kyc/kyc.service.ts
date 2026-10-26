@@ -125,7 +125,7 @@ export class KycService {
 
     return {
       hasSubmittedPersonalInformation: userKyc.hasSubmittedPersonalInformation,
-      hasSubmittedidentity: userKyc.hasSubmittedIdentity,
+      hasSubmittedIdentity: userKyc.hasSubmittedIdentity,
       identityVerificationStatus: userKyc.identityVerificationStatus,
       addressVerificationStatus: userKyc.addressVerificationStatus,
     };
@@ -207,7 +207,7 @@ export class KycService {
       email: userKyc.email,
       phoneNumber: userKyc.phoneNumber,
       hasSubmittedPersonalInformation: userKyc.hasSubmittedPersonalInformation,
-      hasSubmittedidentity: userKyc.hasSubmittedIdentity,
+      hasSubmittedIdentity: userKyc.hasSubmittedIdentity,
       identityVerificationStatus: userKyc.identityVerificationStatus,
       addressVerificationStatus: userKyc.addressVerificationStatus,
     };
@@ -262,7 +262,7 @@ export class KycService {
 
     return {
       hasSubmittedCorporateInformation: userKyc.hasSubmittedPersonalInformation,
-      hasSubmittedidentity: userKyc.hasSubmittedIdentity,
+      hasSubmittedIdentity: userKyc.hasSubmittedIdentity,
       hasSubmittedSignatories: userKyc.hasSubmittedSignatories,
       identityVerificationStatus: userKyc.identityVerificationStatus,
       signatoryVerificationStatus: userKyc.signatoryVerificationStatus,
