@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Param,
@@ -84,8 +85,17 @@ export class SmartbinPartnersController {
   @Patch(':id/update-status')
   async updateBinApplicationStatus(
     @Param('id') id: string,
-    @Query('status') status: SmartbinStatus,
+    @Body('status') bodyStatus: SmartbinStatus,
+    @Query('status') queryStatus: SmartbinStatus,
   ) {
+    // The portal sends { status } in the body; the query string is kept for existing callers.
+    const status = bodyStatus ?? queryStatus;
+    if (!status || !Object.values(SmartbinStatus).includes(status)) {
+      throw new BadRequestException(
+        `status must be one of: ${Object.values(SmartbinStatus).join(', ')}`,
+      );
+    }
+
     const update = await this.smartbinPartnersService.updateOrderStatus(
       id,
       status,

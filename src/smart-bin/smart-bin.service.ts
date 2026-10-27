@@ -904,6 +904,10 @@ export class SmartBinService {
       { new: true },
     );
 
+    if (!order) {
+      throw new NotFoundException('Bin application not found');
+    }
+
     return order;
   }
 
