@@ -162,10 +162,6 @@ export class PickupService {
     accountType: UserRole;
     applicationData: CreatePickupDto;
   }) {
-    console.log('Creating pickup with data:', {
-      accountId,
-      accountType,
-    });
     if (applicationData.transactionReference) {
       const successfulCharge = await this.transactionModel.exists({
         transactionReference: applicationData.transactionReference,
@@ -690,7 +686,6 @@ export class PickupService {
     const { page = 1, limit = 10, search, lga } = filters || {};
     const skip = (page - 1) * limit;
 
-    console.log({ filters });
     // Build date filter for completed pickups
     const dateFilter: any = {};
     if (filters?.startDate || filters?.endDate) {

@@ -71,9 +71,10 @@ export class PspAuthService {
       ? '12345'
       : Math.floor(10000 + Math.random() * 90000).toString();
 
-    await this.cacheService.set(
+    const cached = await this.cacheService.set(
       CacheKeys.PspLoginCode(String(loginCode)),
       String(psp._id),
+      600000,
     );
 
     this.ee.emit(
@@ -124,8 +125,10 @@ export class PspAuthService {
       name: pspUser.name,
       email: pspUser.email,
       role: pspUser.role,
-      ipAddress: req.headers['x-forwarded-for'] as string,
-      userAgent: req.headers['user-agent'],
+      ipAddress:
+        (req?.headers['x-forwarded-for'] as string) || req?.ip || 'Unknown',
+      userAgent:
+        req?.headers['user-agent'] || req?.get('user-agent') || 'Unknown',
       administrator: {
         id: String(pspUser._id),
         name: pspUser.name,

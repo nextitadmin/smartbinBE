@@ -8,7 +8,7 @@ import { Model } from 'mongoose';
 import { PSPUsers, PspUsersDocument } from '@models/psp-users.model';
 import { generateRandomChars } from '@common/utils';
 import { CacheKeys } from '@src/shared/constants';
-import { Inject } from '@nestjs/common';
+import { ConflictException, Inject } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -33,10 +33,18 @@ export class PspTeamManagement {
     this.clientUrl = this.configService.get<string>('frontendUrl');
   }
 
-  async createPspMembers(body: CreatePspMembersDTO, pspUser: PspUser ) {
-    const password = generateRandomChars(10, 'alphanum');
+  async createPspMembers(body: CreatePspMembersDTO, pspUser: PspUser) {
+    const existingUser = await this.pspUser.findOne({
+      email: body.email,
+    });
+    if (existingUser || existingUser?.phone_number === body.phone_number) {
+      throw new ConflictException('PSP Member already exists');
+    }
 
-    const pspAdmin = await this.pspUser.findById(pspUser.id).select('psp_id psp_details')
+    const password = generateRandomChars(10, 'alphanum');
+    const pspAdmin = await this.pspUser
+      .findById(pspUser.id)
+      .select('psp_id psp_details');
 
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
 
@@ -59,7 +67,7 @@ export class PspTeamManagement {
       new SendEmailEvent({
         to: createdPspUser.email,
         from: `"LAWMA REG" <accounts@lawma.co>`,
-        subject: 'Reset Your Password',
+        subject: 'Your PSP Account has been created',
         context: {
           firstName: createdPspUser.name,
           resetLink: resetLink,
@@ -69,8 +77,9 @@ export class PspTeamManagement {
   }
 
   async getPspMembers(pspId: string) {
-
-    return this.pspUser.find({ psp_id: pspId, deleted_at: null }).select('-password -id');
+    return this.pspUser
+      .find({ psp_id: pspId, deleted_at: null })
+      .select('-password -id');
   }
 
   async updatePsp(pspId: string, psp: PspDocument) {

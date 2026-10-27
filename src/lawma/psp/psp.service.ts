@@ -1,6 +1,11 @@
 import { PSPUsers, PspUsersDocument } from '@models/psp-users.model';
 import { PSP, PspDocument } from '@models/psp.model';
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  OnModuleInit,
+} from '@nestjs/common';
 import { Model } from 'mongoose';
 import { CreatePspDTO, CreatePspMembersDTO } from './dto/psp.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -83,9 +88,16 @@ export class PspService implements OnModuleInit {
   }
 
   async createPsp(psp: CreatePspDTO, admin: AdminUser) {
-    const password = generateRandomChars(9, 'alphanum');
-    console.log(password);
+    // Check users
+    const existingUser = await this.pspUser.findOne({
+      email: psp.administrator_email,
+    });
+    console.log({ existingUser });
+    if (existingUser || existingUser.phone_number === psp.administrator_phone) {
+      throw new ConflictException('User already exists');
+    }
 
+    const password = generateRandomChars(9, 'alphanum');
     const pspData = await this.psp.create({ ...psp });
 
     await this.pspUser.create({
@@ -126,20 +138,13 @@ export class PspService implements OnModuleInit {
       new SendEmailEvent({
         to: psp.administrator_email,
         from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
-        subject: 'Reset Your Password',
+        subject: 'Your PSP Account has been created',
         context: {
           firstName: psp.administrator_name,
           resetLink: resetLink,
         },
       }),
     );
-
-    return {
-      email: pspData.administrator_email,
-      name: pspData.company_name,
-      id: pspData._id,
-      password: password,
-    };
   }
 
   async getPspLgas() {

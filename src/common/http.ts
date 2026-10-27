@@ -67,6 +67,13 @@ export class AppResponseInterceptor implements NestInterceptor {
           return data;
         }
 
+        if (
+          data instanceof PaginatedSuccessResponse ||
+          data instanceof SuccessResponse
+        ) {
+          return data;
+        }
+
         return new SuccessResponse(
           data?.message || 'operation successful',
           data?.data || data,

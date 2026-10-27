@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 
 export const bullmqModuleConfigOpts: SharedBullAsyncConfiguration = {
   useFactory: (configService: ConfigService) => {
-    const redisUrl = configService.get<string>('CACHE_URL');
+    const redisUrl = configService.get<string>('QUEUE_URL');
 
     if (!redisUrl) {
       throw new Error('REDIS is required for BullMQ');
