@@ -83,7 +83,7 @@ export class MailerService {
       to,
       context,
       subject,
-    })
+    });
   }
 
   @OnEvent(MailNotificationEvents.Account.ForgotPassword)
@@ -156,12 +156,12 @@ export class MailerService {
       template: Templates.SupportRequest,
       attachments: file
         ? [
-          {
-            filename: file.originalname,
-            content: file.buffer,
-            contentType: file.mimetype,
-          },
-        ]
+            {
+              filename: file.originalname,
+              content: file.buffer,
+              contentType: file.mimetype,
+            },
+          ]
         : [],
     });
   }

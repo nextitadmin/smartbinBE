@@ -9,8 +9,8 @@ export const CacheKeys = {
   AdministratorResetPasswordCode: (code: string) => `SMTBIN_AD_RESET_${code}`,
 
   //PSP
-  PspLoginCode: (code: string) => `SMTBIN_PSP_${code}`,
-  PspResetPasswordCode: (code: string) => `SMTBIN_PSP_RESET_${code}`,
+  PspLoginCode: (code: string) => `SMTBIN:PSP:${code}`,
+  PspResetPasswordCode: (code: string) => `SMTBIN:PSP:RESET:${code}`,
 };
 
 export const AdminMessagePatternCommands = Object.freeze({
@@ -37,7 +37,7 @@ export const AdminMessagePatternCommands = Object.freeze({
     GetDashboard: 'GET_DASHBOARD',
     GetRevenueOverview: 'GET_REVENUE_OVERVIEW',
   },
-  
+
   Report: {
     CreateReport: 'CREATE_REPORT',
     GetReports: 'GET_REPORTS',
