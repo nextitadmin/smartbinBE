@@ -4,9 +4,18 @@ import {
   AdministratorRole,
   AdministratorStatus,
 } from '@models/administrator.model';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { randomBytes } from 'crypto';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { CacheKeys } from '@src/shared/constants';
+import {
+  MailNotificationEvents,
+  SendEmailEvent,
+} from '@src/notification/dto/event';
 import { ErrorMessages } from '@common/constants';
 import {
   CreateLawmaTeamDto,
@@ -21,6 +30,8 @@ export class TeamService {
   constructor(
     @InjectModel(Administrator.name)
     private readonly teamMemberModel: Model<AdministratorAttributes>,
+    @Inject(CACHE_MANAGER) private readonly cacheService: Cache,
+    private readonly ee: EventEmitter2,
   ) {}
 
   async getTeams() {
@@ -56,10 +67,33 @@ export class TeamService {
       throw new BadRequestException(ErrorMessages.DUPLICATE_TEAM_EMAIL);
     }
 
+    // Random initial password that nobody knows. The member sets their own via the reset link.
+    const initialPassword = randomBytes(32).toString('hex');
     const newTeamMember = await this.teamMemberModel.create({
       ...team,
-      password: getHashedPassword('password'),
+      password: getHashedPassword(initialPassword),
     });
+
+    // Same 5-digit code and email as the user reset flow. The admin FE reads it on /resetpassword.
+    const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
+    await this.cacheService.set(
+      CacheKeys.AdministratorResetPasswordCode(resetCode),
+      String(newTeamMember._id),
+      10 * 60 * 1000, // 10mins, same expiry as the admin login and reset codes
+    );
+
+    this.ee.emit(
+      MailNotificationEvents.Account.ForgotPassword,
+      new SendEmailEvent({
+        to: newTeamMember.email,
+        from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
+        subject: 'Password Reset Request',
+        context: {
+          firstName: newTeamMember.name,
+          resetCode,
+        },
+      }),
+    );
 
     const { password, createdAt, updatedAt, deleted_at, ...memberData } =
       newTeamMember.toObject();

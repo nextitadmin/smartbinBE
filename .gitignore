@@ -43,4 +43,8 @@ procfile
 image.png
 image1.png
 image2.png
+image3.png
+image4.png
 *.spec.ts
+/smartbin-admin-frontend/
+/Smartbin-Frontend/

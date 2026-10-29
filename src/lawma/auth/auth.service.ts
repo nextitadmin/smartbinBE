@@ -31,6 +31,10 @@ import { ApplicationEnvironment } from '@common/constants';
 import { Request as UserRequest } from 'express';
 import { AuditLogEvents, LogActionEvent } from '../audit-log/dto/event';
 import { LOGTYPE, UserType } from '@models/audit-log.model';
+import {
+  MailNotificationEvents,
+  SendEmailEvent,
+} from '@src/notification/dto/event';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -85,12 +89,23 @@ export class AuthService implements OnModuleInit {
       : Math.floor(10000 + Math.random() * 90000).toString();
     const loginCodeExpiry = 600000; // 10mins
 
-    console.log(loginCode);
-
     await this.cacheService.set(
       CacheKeys.AdministratorLoginCode(String(loginCode)),
       String(administrator._id),
       loginCodeExpiry,
+    );
+
+    this.ee.emit(
+      MailNotificationEvents.Account.VerificationOTP,
+      new SendEmailEvent({
+        to: String(administrator.email),
+        from: '"LAWMA SMARTBIN" <' + process.env.MAIL_FROM + '>',
+        subject: 'Your Login Verification Code',
+        context: {
+          firstName: administrator.name,
+          loginCode,
+        },
+      }),
     );
   }
 
@@ -182,11 +197,15 @@ export class AuthService implements OnModuleInit {
   async completeResetPassword(
     body: LawmaAuthCompletePasswordResetDto & { adminId: string },
   ) {
-    await this.administratorModel.findByIdAndUpdate(body.adminId, {
-      $set: {
-        password: body.password,
-      },
-    });
+    const administrator = await this.administratorModel.findById(body.adminId);
+    if (!administrator) {
+      throw new BadRequestException('Invalid or expired reset code');
+    }
+
+    // save() runs the Administrator pre('save') hook, which hashes the password.
+    // findByIdAndUpdate skips that hook and would store it in plain text.
+    administrator.password = body.password;
+    await administrator.save();
 
     return { message: 'Password reset successful' };
   }
