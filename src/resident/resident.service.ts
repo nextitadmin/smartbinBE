@@ -47,6 +47,7 @@ import { UserKyc } from '@models/user-kyc.model';
 import { Pickup } from '@models/pickup';
 import { AuthUser } from '@common/types';
 import { error } from 'console';
+import { ApplicationEnvironment } from '@common/constants';
 // import { MessagePattern } from '@nestjs/microservices';
 
 @Injectable()
@@ -65,7 +66,7 @@ export class ResidentService {
     @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
     @InjectModel(Pickup.name) private pickupModel: Model<Pickup>,
     private ee: EventEmitter2,
-  ) { }
+  ) {}
 
   async registerResident(body: CreateResidentAccountDto) {
     const { payerId, password, confirmPassword, lgaId } = body;
@@ -467,7 +468,7 @@ export class ResidentService {
 
     const latestSmartBinHistory =
       smartBinApplication?.applicationHistory?.[
-      smartBinApplication.applicationHistory.length - 1
+        smartBinApplication.applicationHistory.length - 1
       ] ?? null;
 
     const totalOutstandingBill = totalOutstandingResult?.[0]?.total ?? 0;
@@ -483,22 +484,23 @@ export class ResidentService {
       smartBinApplicationCount: smartBinCount,
       smartBinApplicationDetails: latestSmartBinHistory
         ? {
-          status: latestSmartBinHistory.status,
-          statusDescription: latestSmartBinHistory.description,
-          lastUpdatedDate: latestSmartBinHistory.timestamp,
-          formattedlastUpdatedDate: formatTimestamp(
-            latestSmartBinHistory.timestamp,
-          ),
-        }
+            status: latestSmartBinHistory.status,
+            statusDescription: latestSmartBinHistory.description,
+            lastUpdatedDate: latestSmartBinHistory.timestamp,
+            formattedlastUpdatedDate: formatTimestamp(
+              latestSmartBinHistory.timestamp,
+            ),
+          }
         : {
-          status: 'N/A',
-          statusDescription: 'No application found',
-          lastUpdatedDate: 'N/A',
-        },
+            status: 'N/A',
+            statusDescription: 'No application found',
+            lastUpdatedDate: 'N/A',
+          },
       estimatedAnnualSubscriptionFee: 0,
       nextPickUpDate: lastPickUpDetails
-        ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${lastPickUpDetails.pickupTime
-        }`
+        ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${
+            lastPickUpDetails.pickupTime
+          }`
         : 'N/A',
     };
 

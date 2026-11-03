@@ -66,9 +66,6 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException(this.AUTHENTICATION_ERROR_MESSAGE);
     }
 
-    if (!token)
-      throw new UnauthorizedException(this.AUTHENTICATION_ERROR_MESSAGE);
-
     const isBlacklisted = await this.cacheService.get(`blacklist:${token}`);
     if (isBlacklisted)
       throw new UnauthorizedException(this.AUTHENTICATION_ERROR_MESSAGE);
@@ -121,13 +118,11 @@ export class AuthGuard implements CanActivate {
       id: String(user._id),
       email: user.email,
       role: strategy.role,
+      firstName: user?.firstName ?? '',
+      lastName: user?.lastName ?? '',
       token,
     } satisfies
-      | AuthUser
-      | CorporateUser
-      | AgentUser
-      | FacilityManagerUser
-      | ResidentUser;
+      AuthUser | CorporateUser | AgentUser | FacilityManagerUser | ResidentUser;
     return true;
   }
 }
