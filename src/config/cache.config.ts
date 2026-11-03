@@ -18,15 +18,26 @@ export const cacheModuleConfigOpts: CacheModuleAsyncOptions = {
       return { ttl: DEFAULT_TTL_MS };
     }
 
+    const keyv = createKeyv(redisUrl, {
+      namespace: 'SMTBIN',
+      throwOnConnectError: true,
+      throwOnErrors: true,
+      connectionTimeout: 5000,
+    });
+
+    // The raw Redis client emits 'error' on socket drops. Without a listener
+    // Node treats that as fatal and the whole process exits.
+    const redisClient = (
+      keyv.store as unknown as {
+        client?: { on: (event: 'error', cb: (err: Error) => void) => void };
+      }
+    ).client;
+    redisClient?.on('error', (err) => {
+      logger.error(`Redis connection error: ${err.message}`);
+    });
+
     return {
-      stores: [
-        createKeyv(redisUrl, {
-          namespace: 'SMTBIN',
-          throwOnConnectError: true,
-          throwOnErrors: true,
-          connectionTimeout: 5000,
-        }),
-      ],
+      stores: [keyv],
       ttl: DEFAULT_TTL_MS,
     };
   },

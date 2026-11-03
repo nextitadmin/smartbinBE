@@ -288,16 +288,49 @@ export class CreateResidentKycDto {
   addressInformation: AddressVerificationDto;
 }
 
-export class CreateFacilityManagerKycDto {
-  @ApiProperty({ required: false, description: 'ID of the onboarded user this KYC belongs to. Defaults to the logged-in facility manager.' })
-  @IsOptional()
-  @IsMongoId({ message: 'Applicant user id must be a valid Mongo id' })
-  userId?: string;
+// Personal details of the facility manager applying for KYC (the logged-in account).
+export class FacilityManagerPersonalInfoDto {
+  @ApiProperty()
+  @IsString({ message: 'First name must be a string' })
+  @IsNotEmpty({ message: 'First name is required' })
+  firstName: string;
 
-  @ApiProperty({ type: PersonalInfoDto })
+  @ApiProperty()
+  @IsString({ message: 'Last name must be a string' })
+  @IsNotEmpty({ message: 'Last name is required' })
+  lastName: string;
+
+  @ApiProperty()
+  @IsEmail({}, { message: 'Email must be valid' })
+  @IsNotEmpty({ message: 'Email is required' })
+  email: string;
+
+  @ApiProperty()
+  @IsString({ message: 'Phone number must be a string' })
+  @IsNotEmpty({ message: 'Phone number is required' })
+  phoneNumber: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString({ message: 'Nationality must be a string' })
+  nationality?: string;
+
+  @ApiProperty()
+  @IsEnum(Gender, { message: 'Gender must be Male or Female' })
+  gender: Gender;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString({ message: 'Lawma customer type must be a string' })
+  lawmaCustomerType?: LawmaCustomerType;
+}
+
+// The KYC always belongs to the logged-in facility manager (taken from the auth token, not the body).
+export class CreateFacilityManagerKycDto {
+  @ApiProperty({ type: FacilityManagerPersonalInfoDto })
   @ValidateNested()
-  @Type(() => PersonalInfoDto)
-  personalInformation: PersonalInfoDto;
+  @Type(() => FacilityManagerPersonalInfoDto)
+  personalInformation: FacilityManagerPersonalInfoDto;
 
   @ApiProperty({ type: IdVerificationDto })
   @ValidateNested()

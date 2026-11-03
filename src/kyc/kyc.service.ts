@@ -138,18 +138,6 @@ export class KycService {
     applicationData: CreateResidentKycDto | CreateFacilityManagerKycDto;
   }) {
     const targetUserId = new Types.ObjectId(dto.userId);
-    const facilityApplication =
-      dto.accountType === UserRole.Facility &&
-      'userId' in dto.applicationData &&
-      dto.applicationData.userId
-        ? await this.facilityUserModel
-            .findOne({
-              _id: new Types.ObjectId(dto.applicationData.userId),
-              accountId: new Types.ObjectId(dto.userId),
-            })
-            .lean()
-        : null;
-
     const personalInformation =
       dto.applicationData.personalInformation as PersonalInfoDto;
 
@@ -157,21 +145,6 @@ export class KycService {
     const ninCheck = await this.runNinCheck(
       dto.applicationData.identityInformation?.NinNo,
     );
-
-    if (facilityApplication) {
-      await this.facilityUserModel.findByIdAndUpdate(
-        facilityApplication._id,
-        {
-          $set: {
-            firstName: personalInformation.firstName,
-            lastName: personalInformation.lastName,
-            email: personalInformation.email,
-            phoneNumber: personalInformation.phoneNumber,
-          },
-        },
-        { new: true },
-      );
-    }
 
     const applicantNameData = {
       firstName: personalInformation.firstName ?? '',
