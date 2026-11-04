@@ -576,9 +576,12 @@ export class KycService {
     const result = await this.trustpointlyService.verifyNin(nin);
     const { reference, status, providerStatus, identity } = result;
 
+    // Missing identity (provider error or rejection without data) yields empty
+    // names, so the match returns false and the request is rejected below.
     const nameFuzzyMatch = await this.assertNameFuzzyMatch({
       actorNames: `${firstName} ${lastName}`,
-      providerNames: `${identity.firstName} ${identity.lastName}`,
+      // identity is absent on provider error/rejection; compare against nothing.
+      providerNames: `${identity?.firstName ?? ''} ${identity?.lastName ?? ''}`,
       ninNo: nin,
     });
     if (!nameFuzzyMatch) {
@@ -629,7 +632,10 @@ export class KycService {
           ninVerificationReference: reference,
           ninVerificationProviderStatus: providerStatus,
           providerResponse: { result },
-          identityVerificationStatus: status,
+          identityVerificationStatus:
+            status === 'verified' && identity
+              ? IdVerificationStatus.APPROVED
+              : status,
         },
       },
       { new: true },

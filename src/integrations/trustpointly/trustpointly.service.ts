@@ -89,7 +89,19 @@ export class TrustpointlyService {
       const httpStatus = axiosErr.response?.status;
 
       // 400 = validation error / rejected identity per TrustPointly semantics.
-      if (httpStatus === 400) {
+      const bodyMessage = String(
+        (axiosErr.response?.data as any)?.message ??
+          (axiosErr.response?.data as any)?.detail ??
+          '',
+      ).toLowerCase();
+      // An auth-style 400 (e.g. "Invalid project API key") is a config failure,
+      // not a rejected identity, so it must not be stored as rejected.
+      const isAuthError =
+        /api key|unauthori[sz]ed|allowlist|ip restriction|token expired/.test(
+          bodyMessage,
+        );
+
+      if (httpStatus === 400 && !isAuthError) {
         this.logger.warn('NIN verification rejected by provider (400)');
         return { status: 'rejected', providerStatus: 'rejected' };
       }
