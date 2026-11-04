@@ -110,9 +110,7 @@ export class TrustpointlyService {
       this.logger.error(
         `NIN verification could not be completed (status: ${
           httpStatus ?? 'network'
-        }). TEMP-DIAG code=${axiosErr.code}, message=${axiosErr.message}, url=${
-          axiosErr.config?.baseURL ?? ''
-        }${axiosErr.config?.url ?? ''}`,
+        })`,
       );
       return { status: 'error' };
     }
