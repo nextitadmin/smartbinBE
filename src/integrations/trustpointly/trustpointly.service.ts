@@ -85,6 +85,7 @@ export class TrustpointlyService {
 
       return this.normalize(data);
     } catch (err) {
+      console.log({ err });
       const axiosErr = err as AxiosError;
       const httpStatus = axiosErr.response?.status;
 
@@ -142,9 +143,13 @@ export class TrustpointlyService {
     }
 
     if (
-      ['rejected', 'failed', 'declined', 'not-verified', 'not_verified'].includes(
-        rawStatus,
-      )
+      [
+        'rejected',
+        'failed',
+        'declined',
+        'not-verified',
+        'not_verified',
+      ].includes(rawStatus)
     ) {
       return {
         status: 'rejected',

@@ -10,7 +10,7 @@ import { Auth, AuthenticatedUser } from '@common/decorators/auth.decorator';
 import { type AuthUser } from '@common/types';
 import { namesMatch } from './name-match.util';
 
-const NIN_CACHE_TTL_MS = 30 * 60 * 1000;
+const NIN_CACHE_TTL_MS = 1 * 60 * 1000;
 
 // Only terminal verdicts are cached, and only the name subset of the identity.
 type NinVerdictCacheEntry = {
@@ -54,7 +54,7 @@ export class KycController {
       };
     }
 
-    const result = await this.kycService.verifyNinField(body.ninNo);
+    const result = await this.kycService.verifyNin(body);
 
     if (result.status === 'verified' || result.status === 'rejected') {
       await this.cacheManager.set(

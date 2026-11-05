@@ -52,7 +52,14 @@ export class KycService {
     private readonly corporateTeamModel: Model<CorporateTeam>,
     private readonly trustpointlyService: TrustpointlyService,
     private readonly configService: ConfigService<ConfigAttributes>,
-  ) {}
+  ) {
+    // this.verifyNin({
+    //   ninNo: '12345678901',
+    //   firstName: 'John',
+    //   lastName: 'Doe',
+    // });
+    // this.verifyNinField('12345678901').then(console.log);
+  }
 
   // Run the NIN check and return only the non-sensitive fields
   private async runNinCheck(nin?: string): Promise<{
@@ -571,13 +578,18 @@ export class KycService {
     };
   }
 
-  async verifyNin(dto: VerifyNinDto & { firstName: string; lastName: string }) {
+  async verifyNin(dto: VerifyNinDto) {
     const { ninNo, firstName, lastName } = dto;
     const result = await this.trustpointlyService.verifyNin(ninNo);
     const { reference, status, providerStatus, identity } = result;
 
     // Missing identity (provider error or rejection without data) yields empty
     // names, so the match returns false and the request is rejected below.
+    if (status !== 'verified') {
+      throw new BadRequestException(
+        'NIN verification failed. Kindly ensure the NIN is valid and matches the name on the application.',
+      );
+    }
     const nameFuzzyMatch = await this.assertNameFuzzyMatch({
       actorNames: `${firstName} ${lastName}`,
       // identity is absent on provider error/rejection; compare against nothing.
