@@ -41,7 +41,7 @@ export class KycController {
     const lastName = user.lastName;
 
     // Key on a hash so the raw NIN is never stored
-    const cacheKey = `nin:${createHash('sha256').update(body.nin).digest('hex')}`;
+    const cacheKey = `nin:${createHash('sha256').update(body.ninNo).digest('hex')}`;
 
     const cached = await this.cacheManager.get<NinVerdictCacheEntry>(cacheKey);
     if (cached) {
@@ -54,7 +54,7 @@ export class KycController {
       };
     }
 
-    const result = await this.kycService.verifyNinField(body.nin);
+    const result = await this.kycService.verifyNinField(body.ninNo);
 
     if (result.status === 'verified' || result.status === 'rejected') {
       await this.cacheManager.set(

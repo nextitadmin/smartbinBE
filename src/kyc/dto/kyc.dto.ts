@@ -485,7 +485,7 @@ export class VerifyNinDto {
   @IsNotEmpty({ message: 'NIN number is required' })
   @Length(11, 11, { message: 'NIN must be exactly 11 digits' })
   @Matches(/^\d{11}$/, { message: 'NIN must contain only digits' })
-  nin: string;
+  ninNo: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
