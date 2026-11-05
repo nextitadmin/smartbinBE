@@ -73,7 +73,13 @@ async function bootstrap() {
 
   app.enableVersioning();
   app.setGlobalPrefix('api');
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      stopAtFirstError: true,
+      whitelist: true,
+      transform: true,
+    }),
+  );
   app.useGlobalFilters(new GlobalExceptionFilter());
 
   const swaggerConfig = new DocumentBuilder()
