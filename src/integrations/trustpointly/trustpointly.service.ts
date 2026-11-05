@@ -85,7 +85,6 @@ export class TrustpointlyService {
 
       return this.normalize(data);
     } catch (err) {
-      console.log({ err });
       const axiosErr = err as AxiosError;
       const httpStatus = axiosErr.response?.status;
 

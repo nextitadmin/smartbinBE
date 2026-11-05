@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
   OnApplicationBootstrap,
 } from '@nestjs/common';
@@ -42,6 +43,7 @@ import { redactObject } from '@common/utils';
 
 @Injectable()
 export class KycService {
+  private readonly logger = new Logger(KycService.name);
   constructor(
     @InjectModel(Resident.name) private readonly residentModel: Model<Resident>,
     @InjectModel(FacilityManager.name)
@@ -53,14 +55,7 @@ export class KycService {
     private readonly corporateTeamModel: Model<CorporateTeam>,
     private readonly trustpointlyService: TrustpointlyService,
     private readonly configService: ConfigService<ConfigAttributes>,
-  ) {
-    // this.verifyNin({
-    //   ninNo: '12345678901',
-    //   firstName: 'John',
-    //   lastName: 'Doe',
-    // });
-    // this.verifyNinField('12345678901').then(console.log);
-  }
+  ) {}
 
   // Run the NIN check and return only the non-sensitive fields
   private async runNinCheck(nin?: string): Promise<{
@@ -580,10 +575,16 @@ export class KycService {
   }
 
   async verifyNin(dto: VerifyNinDto) {
+    this.logger.log({
+      message: 'Starting NIN Verification',
+    });
     const { ninNo, firstName, lastName } = dto;
     const result = await this.trustpointlyService.verifyNin(ninNo);
-    const redactedResult = redactObject(result, ['dob']);
-    console.dir({ result }, { depth: Infinity });
+    const redactedResult = redactObject(result, ['dateOfBirth']);
+    this.logger.log({
+      data: redactedResult,
+      message: 'NIN verification result',
+    });
     const { reference, status, providerStatus, identity } = result;
 
     // Missing identity (provider error or rejection without data) yields empty
