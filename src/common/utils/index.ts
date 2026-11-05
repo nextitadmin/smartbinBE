@@ -135,6 +135,34 @@ export const formatCustomTime = (time: string): string => {
   const ampm = hours24 >= 12 ? 'PM' : 'AM';
 
   return `${hours12}:${minutes.toString().padStart(2, '0')}${ampm}`;
+};
 
+export function redactObject<T>(
+  obj: T,
+  keysToRedact: string[],
+  replacement = '******',
+): T {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) =>
+      redactObject(item, keysToRedact, replacement),
+    ) as unknown as T;
+  }
+
+  const result: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(obj)) {
+    if (keysToRedact.includes(key)) {
+      result[key] = replacement;
+    } else if (typeof value === 'object' && value !== null) {
+      result[key] = redactObject(value, keysToRedact, replacement);
+    } else {
+      result[key] = value;
+    }
+  }
+
+  return result as T;
 }
-

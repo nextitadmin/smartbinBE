@@ -38,6 +38,7 @@ import { Corporate } from '@models/users/corporate.model';
 import { Agent } from '@models/users/agent.model';
 import { ApplicationEnvironment } from '@common/constants';
 import { FacilityUsers } from '@models/facility-users.model';
+import { redactObject } from '@common/utils';
 
 @Injectable()
 export class KycService {
@@ -581,6 +582,8 @@ export class KycService {
   async verifyNin(dto: VerifyNinDto) {
     const { ninNo, firstName, lastName } = dto;
     const result = await this.trustpointlyService.verifyNin(ninNo);
+    const redactedResult = redactObject(result, ['dob']);
+    console.dir({ result }, { depth: Infinity });
     const { reference, status, providerStatus, identity } = result;
 
     // Missing identity (provider error or rejection without data) yields empty

@@ -54,7 +54,11 @@ export class KycController {
       };
     }
 
-    const result = await this.kycService.verifyNin(body);
+    const result = await this.kycService.verifyNin({
+      ...body,
+      firstName,
+      lastName,
+    });
 
     if (result.status === 'verified' || result.status === 'rejected') {
       await this.cacheManager.set(
