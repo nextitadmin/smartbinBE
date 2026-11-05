@@ -138,8 +138,8 @@ export class KycService {
     applicationData: CreateResidentKycDto | CreateFacilityManagerKycDto;
   }) {
     const targetUserId = new Types.ObjectId(dto.userId);
-    const personalInformation =
-      dto.applicationData.personalInformation as PersonalInfoDto;
+    const personalInformation = dto.applicationData
+      .personalInformation as PersonalInfoDto;
 
     // NIN is checked before any write, so a rejected verdict persists nothing
     const ninCheck = await this.runNinCheck(
@@ -572,8 +572,8 @@ export class KycService {
   }
 
   async verifyNin(dto: VerifyNinDto & { firstName: string; lastName: string }) {
-    const { nin, firstName, lastName } = dto;
-    const result = await this.trustpointlyService.verifyNin(nin);
+    const { ninNo, firstName, lastName } = dto;
+    const result = await this.trustpointlyService.verifyNin(ninNo);
     const { reference, status, providerStatus, identity } = result;
 
     // Missing identity (provider error or rejection without data) yields empty
@@ -582,7 +582,7 @@ export class KycService {
       actorNames: `${firstName} ${lastName}`,
       // identity is absent on provider error/rejection; compare against nothing.
       providerNames: `${identity?.firstName ?? ''} ${identity?.lastName ?? ''}`,
-      ninNo: nin,
+      ninNo: ninNo,
     });
     if (!nameFuzzyMatch) {
       throw new BadRequestException(
