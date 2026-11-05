@@ -141,7 +141,11 @@ export class TrustpointlyService {
       };
     }
 
-    if (['rejected', 'failed', 'declined'].includes(rawStatus)) {
+    if (
+      ['rejected', 'failed', 'declined', 'not-verified', 'not_verified'].includes(
+        rawStatus,
+      )
+    ) {
       return {
         status: 'rejected',
         reference,

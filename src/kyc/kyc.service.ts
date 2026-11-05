@@ -619,23 +619,34 @@ export class KycService {
 
     const user = application.userId as unknown as
       Resident | FacilityManager | Corporate | Agent;
-    const result = await this.verifyNin({
-      nin: application.NinNo,
-      firstName: user.firstName,
-      lastName: user.lastName,
-    });
+    // Admin verification records the provider's verdict even when the name
+    // does not match or the provider has no identity. The name result is
+    // returned so the admin can decide, instead of the request failing.
+    const result = await this.trustpointlyService.verifyNin(application.NinNo);
     const { reference, status, providerStatus, identity } = result;
+    const namedMatched = identity
+      ? await this.assertNameFuzzyMatch({
+          actorNames: `${user.firstName ?? ''} ${user.lastName ?? ''}`,
+          providerNames: `${identity.firstName ?? ''} ${identity.lastName ?? ''}`,
+          ninNo: application.NinNo,
+        })
+      : false;
     await this.userKycModel.findByIdAndUpdate(
       applicationId,
       {
         $set: {
           ninVerificationReference: reference,
           ninVerificationProviderStatus: providerStatus,
-          providerResponse: { result },
+          providerResponse: { result, namedMatched },
+          // Only final provider verdicts change the KYC status. A verified
+          // identity approves only when the name also matches. Pending,
+          // errored or name-mismatched lookups stay SUBMITTED for the admin.
           identityVerificationStatus:
-            status === 'verified' && identity
+            status === 'verified' && identity && namedMatched
               ? IdVerificationStatus.APPROVED
-              : status,
+              : status === 'rejected'
+                ? IdVerificationStatus.REJECTED
+                : IdVerificationStatus.SUBMITTED,
         },
       },
       { new: true },
@@ -647,12 +658,21 @@ export class KycService {
         reference: result.reference,
         providerStatus: result.providerStatus ?? result.status,
         identity: result.identity ?? null,
+        namedMatched,
       },
       message: 'NIN verification completed',
     };
   }
 
   async approveApplication(applicationId: string) {
+    // Approve only what Trustpointly verified, with the name matching.
+    const verdict = await this.verifyApplicationNin(applicationId);
+    if (verdict.data.status !== 'verified' || !verdict.data.namedMatched) {
+      throw new BadRequestException(
+        `Trustpointly has not verified this NIN (provider status: ${verdict.data.providerStatus}${verdict.data.namedMatched ? '' : ', name does not match'}). Application cannot be approved.`,
+      );
+    }
+
     const application = await this.userKycModel.findById(applicationId).lean();
     if (!application) {
       throw new NotFoundException('Application not found');
@@ -695,6 +715,14 @@ export class KycService {
   }
 
   async rejectApplication(applicationId: string, reason?: string) {
+    // Reject only what Trustpointly reports as not verified.
+    const verdict = await this.verifyApplicationNin(applicationId);
+    if (verdict.data.status !== 'rejected') {
+      throw new BadRequestException(
+        `Trustpointly has not rejected this NIN (provider status: ${verdict.data.providerStatus}). Application cannot be rejected.`,
+      );
+    }
+
     const application = await this.userKycModel.findById(applicationId).lean();
     if (!application) {
       throw new NotFoundException('Application not found');
